@@ -1,0 +1,7 @@
+hosts=IP:PORT
+base=dc=authica
+dn=cn=xxx,dc=authica
+dnpass=P@ssw0rd
+auth_bind=yes
+auth_bind_userdn=uid=%Ln,ou=users,dc=authica
+default_pass_scheme=plain

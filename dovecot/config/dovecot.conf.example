@@ -1,0 +1,55 @@
+## You should mount /etc/dovecot if you want to
+## manage this file
+
+## Remove when not developing
+disable_plaintext_auth=no
+auth_master_user_separator=*
+
+
+mail_home=/srv/mail/%Ln
+mail_location=maildir:/srv/mail/%Ln/Mail
+mail_uid=1000
+mail_gid=1000
+
+protocols = imap submission sieve
+
+first_valid_uid = 1000
+last_valid_uid = 1000
+
+
+master_user_separator=*
+passdb {
+# <real_user>*<master_user>
+  driver=passwd-file
+  args=/etc/dovecot/masters
+  #https://doc.dovecot.org/configuration_manual/authentication/password_schemes/#generating-encrypted-passwords
+  # doveadm pw
+
+# OR <real_user>*<whatever>
+#   driver = static
+#   args = password=kurac
+
+  master=yes
+  result_success=continue-ok
+}
+passdb {
+  driver=ldap
+  args=/etc/dovecot/ldap.conf
+}
+# passdb {
+#   driver = static
+#   args = password=pass
+# }
+
+ssl=no
+
+namespace {
+  inbox = yes
+  separator = /
+}
+
+listen = *
+
+log_path=/dev/stdout
+info_log_path=/dev/stdout
+debug_log_path=/dev/stdout
