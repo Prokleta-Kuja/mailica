@@ -1,6 +1,6 @@
 namespace mailica.Enums
 {
-    public enum AccountType
+    public enum CredentialType
     {
         Smtp = 1,
         Imap = 2,
