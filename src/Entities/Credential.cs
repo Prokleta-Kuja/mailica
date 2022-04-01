@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using mailica.Enums;
-using mailica.Services;
 
 namespace mailica.Entities
 {
@@ -33,15 +32,7 @@ namespace mailica.Entities
         public Job? Job { get; set; }
 
         public virtual ICollection<Job> CatchAllJobs { get; set; } = new HashSet<Job>();
+        public virtual ICollection<IncomingRuleCredential> IncomingRuleCredentials { get; set; } = new HashSet<IncomingRuleCredential>();
         public virtual ICollection<OutgoingRule> OutgoingRules { get; set; } = new HashSet<OutgoingRule>();
-        public Credential SetPassword(string newPassword, IPasswordHasher hasher)
-        {
-            throw new NotImplementedException("Must be stored with reversible method");
-            // if (string.IsNullOrWhiteSpace(newPassword))
-            //     throw new ArgumentNullException(newPassword);
-
-            // Password = hasher.HashPassword(newPassword);
-            // return this;
-        }
     }
 }

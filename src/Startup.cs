@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using authica.Entities;
+using mailica.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -10,7 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace authica
+namespace mailica
 {
     public class Startup
     {
@@ -34,17 +36,18 @@ namespace authica
                 options.KnownProxies.Clear();
             });
 
-            // services.AddDbContextFactory<AppDbContext>(builder =>
-            // {
-            //     builder.UseSqlite(C.Paths.AppDbConnectionString);
-            //     if (Debugger.IsAttached)
-            //     {
-            //         builder.EnableSensitiveDataLogging();
-            //         builder.LogTo(message => Debug.WriteLine(message), new[] { RelationalEventId.CommandExecuted });
-            //     }
-            // });
+            services.AddDbContextFactory<AppDbContext>(builder =>
+            {
+                builder.UseSqlite(C.Paths.AppDbConnectionString);
+                if (Debugger.IsAttached)
+                {
+                    builder.EnableSensitiveDataLogging();
+                    builder.LogTo(message => Debug.WriteLine(message), new[] { RelationalEventId.CommandExecuted });
+                }
+            });
 
-            // services.AddDataProtection().PersistKeysToDbContext<AppDbContext>();
+            services.AddDataProtection().PersistKeysToDbContext<AppDbContext>();
+            services.AddSingleton<IPasswordHasher, PasswordHashingService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

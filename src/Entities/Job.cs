@@ -7,10 +7,11 @@ namespace mailica.Entities
     {
         Job() { }
 
-        internal Job(int credentialId, bool markAsRead, TimeSpan syncEvery)
+        internal Job(int credentialId, bool leaveCopy, TimeSpan syncEvery)
         {
             CredentialId = credentialId;
             MarkAsRead = true;
+            LeaveCopy = leaveCopy;
             SyncEvery = syncEvery;
         }
 

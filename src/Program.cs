@@ -4,15 +4,19 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using authica.Entities;
+using mailica.Services;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace authica
+namespace mailica
 {
     public class Program
     {
@@ -20,15 +24,13 @@ namespace authica
         static IHost _instance = null!;
         public static async Task Main(string[] args)
         {
-            await RegexTest();
-            return;
             InitializeDirectories();
-            await InitializeDb(args);
 
             while (_shouldStart)
             {
                 _shouldStart = false;
                 _instance = CreateHostBuilder(args).Build();
+                await InitializeDb();
                 _instance.Run();
             }
         }
@@ -45,29 +47,33 @@ namespace authica
                 });
         static void InitializeDirectories()
         {
-            // var appdata = new DirectoryInfo(C.Paths.AppData);
-            // appdata.Create();
+            var appdata = new DirectoryInfo(C.Paths.AppData);
+            appdata.Create();
         }
 
-        static async Task InitializeDb(string[] args)
+        static async Task InitializeDb()
         {
-            await Task.CompletedTask;
             // var dbFile = new FileInfo(C.Paths.AppDataFor("app.db"));
 
             // var opt = new DbContextOptionsBuilder<AppDbContext>();
             // opt.UseSqlite(C.Paths.AppDbConnectionString);
 
             // var db = new AppDbContext(opt.Options);
-            // if (db.Database.GetMigrations().Any())
-            //     await db.Database.MigrateAsync();
-            // else
-            //     await db.Database.EnsureCreatedAsync();
+            var dbFactory = _instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+            using var db = dbFactory.CreateDbContext();
 
-            // // Seed
-            // if (!db.Users.Any())
-            // {
-            //     await db.InitializeDefaults(new PasswordHashingService());
-            // }
+            if (db.Database.GetMigrations().Any())
+                await db.Database.MigrateAsync();
+            else
+                await db.Database.EnsureCreatedAsync();
+
+            // Seed
+            if (!db.Credentials.Any())
+            {
+                var hasher = _instance.Services.GetRequiredService<IPasswordHasher>();
+                var dpProvider = _instance.Services.GetRequiredService<IDataProtectionProvider>();
+                await db.InitializeDefaults(hasher, dpProvider);
+            }
         }
         static async Task RegexTest()
         {

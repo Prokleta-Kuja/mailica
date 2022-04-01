@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace mailica.Entities
 {
@@ -22,5 +23,6 @@ namespace mailica.Entities
         public DateTime? Disabled { get; set; }
 
         public Job? Job { get; set; }
+        public virtual ICollection<IncomingRuleCredential> IncomingRuleCredentials { get; set; } = new HashSet<IncomingRuleCredential>();
     }
 }
