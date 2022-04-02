@@ -3,44 +3,10 @@ using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using MimeKit;
+using tester;
 
-// var message = new MimeMessage();
-// message.From.Add(new MailboxAddress("Joey Tribbiani", "joey@friends.com"));
-// message.To.Add(new MailboxAddress("Mrs. Chanandler Bong", "chandler@friends.com"));
-// message.Subject = "How you doin'?";
-
-// message.Body = new TextPart("plain")
-// {
-//     Text = @"Hey Chandler,
-
-// I just wanted to let you know that Monica and I were going to go play some paintball, you in?
-
-// -- Joey"
-// };
-
-// using (var client = new ImapClient())
-// {
-//     client.Connect("dovecot.gunda", 143, false);
-
-//     client.Authenticate("user1", "P@ssw0rd");
-
-//     // The Inbox folder is always available on all IMAP servers...
-//     var inbox = client.Inbox;
-
-//     Console.WriteLine("Total messages: {0}", inbox.Count);
-//     Console.WriteLine("Recent messages: {0}", inbox.Recent);
-
-//     await inbox.AppendAsync(message, MessageFlags.None);
-
-//     // for (int i = 0; i < inbox.Count; i++)
-//     // {
-//     //     var message = inbox.GetMessage(i);
-//     //     Console.WriteLine("Subject: {0}", message.Subject);
-//     // }
-
-//     client.Disconnect(true);
-// }
-
+FillGmailUser1();
+FillGmailCompany();
 
 // using var vanjskiMailbox = new ImapClient();
 // using var nutarnjiMailbox = new ImapClient();
@@ -73,3 +39,57 @@ using MimeKit;
 // nutarnjiMailbox.Disconnect(true);
 
 // Console.WriteLine("Hello, World!");
+
+static void FillGmailUser1()
+{
+    using var client = GetClient("gmail-user1");
+    var messages = new List<MimeMessage>{
+        GetMessage(C.BoxGmailUser1),
+        GetMessage(C.BoxGmailUser1),
+        GetMessage(C.BoxGmailUser1),
+        GetMessage(C.BoxGmailUser1),
+        GetMessage(C.BoxGmailUser1),
+        GetMessage(C.BoxGmailUser1),
+    };
+    var inbox = client.Inbox;
+    foreach (var message in messages)
+        inbox.Append(message);
+    client.Disconnect(true);
+}
+
+static void FillGmailCompany()
+{
+    using var client = GetClient("gmail-company");
+    var messages = new List<MimeMessage>{
+        GetMessage(C.BoxSales),
+        GetMessage(C.BoxSales,C.BoxSupport),
+        GetMessage(C.BoxUser1),
+        GetMessage(C.BoxUser2),
+        GetMessage(C.BoxSales),
+        GetMessage(C.BoxSales,C.BoxSupport),
+        GetMessage(C.BoxUser1),
+        GetMessage(C.BoxUser2),
+    };
+    var inbox = client.Inbox;
+    foreach (var message in messages)
+        inbox.Append(message);
+    client.Disconnect(true);
+}
+
+static MimeMessage GetMessage(params MailboxAddress[] addresses)
+{
+    var message = new MimeMessage();
+    message.From.Add(C.BoxSender);
+    message.To.AddRange(addresses);
+    message.Subject = Guid.NewGuid().ToString();
+    message.Body = new TextPart("plain") { Text = C.Lipsum };
+    return message;
+}
+
+static ImapClient GetClient(string username)
+{
+    var client = new ImapClient();
+    client.Connect("dovecot.gunda", 143, false);
+    client.Authenticate(username, "P@ssw0rd");
+    return client;
+}
