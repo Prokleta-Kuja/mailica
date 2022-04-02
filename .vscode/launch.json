@@ -8,8 +8,8 @@
             "name": "mailica (web)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/bin/Debug/net6.0/mailica.dll",
+            "preLaunchTask": "build-mailica",
+            "program": "${workspaceFolder}/src/mailica/bin/Debug/net6.0/mailica.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src",
             "stopAtEntry": false,
@@ -25,9 +25,15 @@
             }
         },
         {
-            "name": ".NET Core Attach",
+            "name": "tester",
             "type": "coreclr",
-            "request": "attach"
+            "request": "launch",
+            "preLaunchTask": "build-tester",
+            "program": "${workspaceFolder}/src/tester/bin/Debug/net6.0/tester.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole"
         }
     ]
 }
