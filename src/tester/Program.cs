@@ -5,8 +5,20 @@ using MailKit.Search;
 using MimeKit;
 using tester;
 
-FillGmailUser1();
-FillGmailCompany();
+var runner1 = new Runner();
+var runner2 = new Runner();
+
+Task.Run(() => runner1.Run("gmail-user1"));
+Task.Run(() => runner2.Run("user2"));
+
+await Task.Delay(TimeSpan.FromSeconds(25));
+
+runner1.Stop();
+runner2.Stop();
+
+
+// FillGmailUser1();
+// FillGmailCompany();
 
 // using var vanjskiMailbox = new ImapClient();
 // using var nutarnjiMailbox = new ImapClient();
@@ -38,6 +50,25 @@ FillGmailCompany();
 // vanjskiMailbox.Disconnect(true);
 // nutarnjiMailbox.Disconnect(true);
 
+
+
+// var client = new ImapClient();
+// client.Connect("dovecot.gunda", 143, false);
+// client.Authenticate("gmail-user1", "P@ssw0rd");
+
+// var cts = new CancellationTokenSource(TimeSpan.FromMinutes(9));
+// client.Inbox.Open(FolderAccess.ReadOnly);
+// client.Inbox.CountChanged += Count;
+// await client.IdleAsync(cts.Token);
+
+// void Count(object? sender, EventArgs e)
+// {
+//     if (sender is not IImapFolder folder)
+//         return;
+
+//     var lastChange = DateTime.UtcNow;
+//     System.Console.WriteLine($"{lastChange:hh:mm:ss} -> {folder.Count}");
+// }
 // Console.WriteLine("Hello, World!");
 
 static void FillGmailUser1()
@@ -45,11 +76,11 @@ static void FillGmailUser1()
     using var client = GetClient("gmail-user1");
     var messages = new List<MimeMessage>{
         GetMessage(C.BoxGmailUser1),
-        GetMessage(C.BoxGmailUser1),
-        GetMessage(C.BoxGmailUser1),
-        GetMessage(C.BoxGmailUser1),
-        GetMessage(C.BoxGmailUser1),
-        GetMessage(C.BoxGmailUser1),
+        // GetMessage(C.BoxGmailUser1),
+        // GetMessage(C.BoxGmailUser1),
+        // GetMessage(C.BoxGmailUser1),
+        // GetMessage(C.BoxGmailUser1),
+        // GetMessage(C.BoxGmailUser1),
     };
     var inbox = client.Inbox;
     foreach (var message in messages)
