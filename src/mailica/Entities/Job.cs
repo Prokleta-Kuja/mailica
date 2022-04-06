@@ -22,6 +22,8 @@ namespace mailica.Entities
         public bool MarkAsRead { get; set; }
         public TimeSpan SyncEvery { get; set; }
         public int? CatchAllCredentialId { get; set; }
+        public string? CatchAllFolder { get; set; }
+        public DateTime? Disabled { get; set; }
 
         public Credential? Credential { get; set; } // one-on-one
         public Credential? CatchAllCredential { get; set; }

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using mailica.Enums;
 
 namespace mailica.Entities
 {
+    [DebuggerDisplay("Id={CredentialId} User={Username}")]
     public class Credential
     {
         Credential()

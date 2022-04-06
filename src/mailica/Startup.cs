@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using authica.Entities;
 using mailica.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using mailica.Sync;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -48,6 +48,8 @@ namespace mailica
 
             services.AddDataProtection().PersistKeysToDbContext<AppDbContext>();
             services.AddSingleton<IPasswordHasher, PasswordHashingService>();
+            services.AddSingleton<SyncManager>();
+            services.AddHostedService<SyncService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
