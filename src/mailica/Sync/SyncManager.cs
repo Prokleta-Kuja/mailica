@@ -58,13 +58,13 @@ public class SyncManager
                 {
                     var ruleDestinations = new List<SyncDestination>(rule.IncomingRuleCredentials.Count);
                     foreach (var ruleCredential in rule.IncomingRuleCredentials)
-                        ruleDestinations.Add(new(credentials[ruleCredential.CredentialId], ruleCredential.Folder));
+                        if (credentials.ContainsKey(ruleCredential.CredentialId))
+                            ruleDestinations.Add(new(credentials[ruleCredential.CredentialId], ruleCredential.Folder));
 
                     var syncRule = new SyncRule(rule.Filter, ruleDestinations);
                     syncRules.Add(syncRule);
                 }
 
-            // var syncInstance = new SyncInstance(job.Key, syncFrom, syncRules);
             var syncInstance = ActivatorUtilities.CreateInstance<SyncInstance>(_sp, job.Key, syncFrom, syncRules);
             if (job.Value.CatchAllCredentialId.HasValue && credentials.TryGetValue(job.Value.CatchAllCredentialId.Value, out var catchAll))
                 syncInstance.ToCatchAll = new(catchAll, job.Value.CatchAllFolder);
@@ -72,10 +72,10 @@ public class SyncManager
             _instances.Add(job.Key, syncInstance);
         }
 
-        foreach (var instance in _instances)
-        {
-            // TODO: start instance
-        }
+
+        _instances[1].Start();
+        // foreach (var instance in _instances)
+        //     _ = instance.Value.StartAsync().ConfigureAwait(false);
     }
     public async Task StopAsync()
     {

@@ -12,13 +12,15 @@ namespace mailica.Entities
         {
             Host = null!;
             Username = null!;
+            Password = null!;
         }
-        internal Credential(CredentialType type, string host, int port, string username)
+        internal Credential(CredentialType type, string host, int port, string username, string protectedPass)
         {
             Type = type;
             Host = host;
             Port = port;
             Username = username;
+            Password = protectedPass;
             IsValid = true;
         }
 
@@ -28,7 +30,7 @@ namespace mailica.Entities
         public string Host { get; set; }
         public int Port { get; set; }
         public string Username { get; set; }
-        public string? Password { get; set; }
+        public string Password { get; set; }
         public bool IsValid { get; set; }
         public DateTime? Disabled { get; set; }
         public Job? Job { get; set; }

@@ -104,6 +104,7 @@ namespace authica.Entities
             var debugHost = "dovecot.gunda";
             var debugPort = 143;
             var protector = dpProvider.CreateProtector(nameof(Credential));
+            var protectedPass = protector.Protect(debugPass);
 
             var account1 = new Account("user1");
             account1.SetPassword(debugPass, hasher);
@@ -111,14 +112,10 @@ namespace authica.Entities
             account2.SetPassword(debugPass, hasher);
             Accounts.AddRange(account1, account2);
 
-            var gmailUser1 = new Credential(CredentialType.Imap, debugHost, debugPort, "gmail-user1");
-            gmailUser1.Password = protector.Protect(debugPass);
-            var gmailCompany = new Credential(CredentialType.Imap, debugHost, debugPort, "gmail-company");
-            gmailCompany.Password = protector.Protect(debugPass);
-            var user1 = new Credential(CredentialType.Imap, debugHost, debugPort, "user1");
-            user1.Password = protector.Protect(debugPass);
-            var user2 = new Credential(CredentialType.Imap, debugHost, debugPort, "user2");
-            user2.Password = protector.Protect(debugPass);
+            var gmailUser1 = new Credential(CredentialType.Imap, debugHost, debugPort, "gmail-user1", protectedPass);
+            var gmailCompany = new Credential(CredentialType.Imap, debugHost, debugPort, "gmail-company", protectedPass);
+            var user1 = new Credential(CredentialType.Imap, debugHost, debugPort, "user1", protectedPass);
+            var user2 = new Credential(CredentialType.Imap, debugHost, debugPort, "user2", protectedPass);
             Credentials.AddRange(gmailUser1, gmailCompany, user1, user2);
 
             await SaveChangesAsync();

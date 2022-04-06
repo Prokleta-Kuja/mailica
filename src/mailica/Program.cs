@@ -6,32 +6,54 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using authica.Entities;
 using mailica.Services;
-using MailKit;
-using MailKit.Net.Imap;
-using MailKit.Search;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
+using Serilog.Events;
 
 namespace mailica
 {
     public class Program
     {
+        static bool DEBUG = Environment.GetEnvironmentVariable(nameof(DEBUG)) == "1";
         static bool _shouldStart = true;
         static IHost _instance = null!;
-        public static async Task Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
-            InitializeDirectories();
-
-            while (_shouldStart)
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Is(DEBUG ? LogEventLevel.Debug : LogEventLevel.Information)
+                .MinimumLevel.Override(nameof(Microsoft), LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console(
+                    outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"
+                )
+                .CreateLogger();
+            try
             {
-                _shouldStart = false;
-                _instance = CreateHostBuilder(args).Build();
-                await InitializeDb();
-                _instance.Run();
+                InitializeDirectories();
+
+                while (_shouldStart)
+                {
+                    _shouldStart = false;
+                    _instance = CreateHostBuilder(args).Build();
+                    await InitializeDb();
+                    _instance.Run();
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+                return 1;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
             }
         }
         public static void Shutdown(bool restart = false)
@@ -41,6 +63,7 @@ namespace mailica
         }
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
@@ -53,12 +76,6 @@ namespace mailica
 
         static async Task InitializeDb()
         {
-            // var dbFile = new FileInfo(C.Paths.AppDataFor("app.db"));
-
-            // var opt = new DbContextOptionsBuilder<AppDbContext>();
-            // opt.UseSqlite(C.Paths.AppDbConnectionString);
-
-            // var db = new AppDbContext(opt.Options);
             var dbFactory = _instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
             using var db = dbFactory.CreateDbContext();
 
