@@ -5,16 +5,51 @@ using MailKit.Search;
 using MimeKit;
 using tester;
 
-var runner1 = new Runner();
-var runner2 = new Runner();
 
-Task.Run(() => runner1.Run("gmail-user1"));
-Task.Run(() => runner2.Run("user2"));
 
-await Task.Delay(TimeSpan.FromSeconds(25));
+var client = new ImapClient();
+client.Connect("dovecot.gunda", 143, false);
+client.Authenticate("gmail-user1", "P@ssw0rd");
 
-runner1.Stop();
-runner2.Stop();
+var folders = client.GetFolders(client.PersonalNamespaces[0]);
+
+var path = ".Pero.Zdero"; // Store folder separator first, so you know what it is
+var actual = path[1..]; // remove first char - same as Substring(1)
+var separator = path[0];
+
+IMailFolder? folder;
+try
+{
+    folder = client.GetFolder(actual);
+}
+catch (FolderNotFoundException)
+{
+    var currentDir = client.GetFolder(client.PersonalNamespaces[0]);
+    var parts = actual.Split(separator);
+    var queue = new Queue<string>(parts);
+
+    while (queue.TryDequeue(out var part))
+    {
+        currentDir = currentDir.Create(part, true);
+        currentDir.Subscribe();
+    }
+
+    folder = currentDir;
+}
+
+
+Console.WriteLine(folder.FullName);
+
+// var runner1 = new Runner();
+// var runner2 = new Runner();
+
+// Task.Run(() => runner1.Run("gmail-user1"));
+// Task.Run(() => runner2.Run("user2"));
+
+// await Task.Delay(TimeSpan.FromSeconds(25));
+
+// runner1.Stop();
+// runner2.Stop();
 
 
 // FillGmailUser1();
@@ -69,7 +104,6 @@ runner2.Stop();
 //     var lastChange = DateTime.UtcNow;
 //     System.Console.WriteLine($"{lastChange:hh:mm:ss} -> {folder.Count}");
 // }
-// Console.WriteLine("Hello, World!");
 
 static void FillGmailUser1()
 {
