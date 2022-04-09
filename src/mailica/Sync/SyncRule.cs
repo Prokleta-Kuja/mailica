@@ -12,7 +12,7 @@ public class SyncRule
 
     public SyncRule(string regexEscapedfilter, List<SyncDestination> destinations)
     {
-        _filter = new Regex(regexEscapedfilter);
+        _filter = new Regex(regexEscapedfilter, RegexOptions.IgnoreCase);
         Destinations = destinations;
     }
     public bool Matches(string input) => _filter.IsMatch(input);

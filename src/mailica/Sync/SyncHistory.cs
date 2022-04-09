@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace mailica.Sync;
-class SyncHistory
+public class SyncHistory
 {
     readonly int _maxCount;
     readonly Queue<SyncLog> _queue;
@@ -28,7 +28,7 @@ class SyncHistory
         return _queue.Reverse();
     }
 }
-record SyncLog
+public record SyncLog
 {
     public SyncLog(string entry)
     {

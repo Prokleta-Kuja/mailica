@@ -2,9 +2,9 @@ namespace mailica.Enums;
 
 public enum SyncStatus
 {
-    Undefined,
+    Stopped,
     Scheduled,
     Syncing,
-    Stopped,
+    Retry,
     Errored,
 }

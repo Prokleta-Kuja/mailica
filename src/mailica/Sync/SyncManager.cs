@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using authica.Entities;
 using mailica.Entities;
+using mailica.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -49,6 +50,7 @@ public class SyncManager
             else
                 jobRulesDict.Add(rule.JobId, new() { rule });
 
+        var rand = new Random();
         foreach (var job in jobs)
         {
             var syncFrom = credentials[job.Value.CredentialId];
@@ -69,24 +71,25 @@ public class SyncManager
             if (job.Value.CatchAllCredentialId.HasValue && credentials.TryGetValue(job.Value.CatchAllCredentialId.Value, out var catchAll))
                 syncInstance.ToCatchAll = new(catchAll, job.Value.CatchAllFolder);
 
-            _instances.Add(job.Key, syncInstance);
+            if (_instances.TryAdd(job.Key, syncInstance))
+                // _instances[job.Key].Start(job.Value.SyncEvery, rand.Next(30_000));
+                if (job.Key == 1) // TODO: remove after test
+                    _instances[job.Key].Start(job.Value.SyncEvery, 1);
         }
-
-
-        _instances[1].Start();
-        // foreach (var instance in _instances)
-        //     _ = instance.Value.StartAsync().ConfigureAwait(false);
     }
     public async Task StopAsync()
     {
         if (_instances.Any())
-        {
             foreach (var instance in _instances)
-            {
-                // TODO: stop instance
-            }
+                instance.Value.Stop();
+
+        var waitFor = 10;
+        while (!_instances.Values.All(i => i.Status == SyncStatus.Stopped))
+        {
+            --waitFor;
+            await Task.Delay(TimeSpan.FromSeconds(1));
         }
-        // TODO: make sure all stoped
+
         _instances.Clear();
     }
 }
