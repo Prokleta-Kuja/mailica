@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using authica.Entities;
+using mailica.Entities;
 using mailica.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -19,13 +19,12 @@ namespace mailica
 {
     public class Program
     {
-        static bool DEBUG = Environment.GetEnvironmentVariable(nameof(DEBUG)) == "1";
         static bool _shouldStart = true;
         static IHost _instance = null!;
         public static async Task<int> Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Is(DEBUG ? LogEventLevel.Debug : LogEventLevel.Information)
+                .MinimumLevel.Is(C.IsDebug ? LogEventLevel.Debug : LogEventLevel.Information)
                 .MinimumLevel.Override(nameof(Microsoft), LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .WriteTo.Console(

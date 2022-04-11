@@ -13,7 +13,7 @@ client.Authenticate("gmail-user1", "P@ssw0rd");
 
 var folders = client.GetFolders(client.PersonalNamespaces[0]);
 
-var path = ".Pero.Zdero"; // Store folder separator first, so you know what it is
+var path = ".Pero1.Zdero2"; // Store folder separator first, so you know what it is
 var actual = path[1..]; // remove first char - same as Substring(1)
 var separator = path[0];
 
@@ -26,11 +26,9 @@ catch (FolderNotFoundException)
 {
     var currentDir = client.GetFolder(client.PersonalNamespaces[0]);
     var parts = actual.Split(separator);
-    var queue = new Queue<string>(parts);
-
-    while (queue.TryDequeue(out var part))
+    for (int i = 0; i < parts.Length; i++)
     {
-        currentDir = currentDir.Create(part, true);
+        currentDir = currentDir.Create(parts[i], true);
         currentDir.Subscribe();
     }
 

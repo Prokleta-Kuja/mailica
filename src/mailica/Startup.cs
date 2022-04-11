@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using authica.Entities;
+using mailica.Entities;
 using mailica.Services;
 using mailica.Sync;
 using Microsoft.AspNetCore.Builder;
@@ -50,6 +50,7 @@ namespace mailica
             services.AddSingleton<IPasswordHasher, PasswordHashingService>();
             services.AddSingleton<SyncManager>();
             services.AddHostedService<SyncService>();
+            services.AddScoped<ToastService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

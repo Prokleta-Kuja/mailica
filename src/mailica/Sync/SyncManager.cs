@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using authica.Entities;
+using mailica.Entities;
 using mailica.Entities;
 using mailica.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -71,10 +71,9 @@ public class SyncManager
             if (job.Value.CatchAllCredentialId.HasValue && credentials.TryGetValue(job.Value.CatchAllCredentialId.Value, out var catchAll))
                 syncInstance.ToCatchAll = new(catchAll, job.Value.CatchAllFolder);
 
-            if (_instances.TryAdd(job.Key, syncInstance))
-                // _instances[job.Key].Start(job.Value.SyncEvery, rand.Next(30_000));
-                if (job.Key == 1) // TODO: remove after test
-                    _instances[job.Key].Start(job.Value.SyncEvery, 1);
+            // TODO: activate sync
+            // if (_instances.TryAdd(job.Key, syncInstance))
+            //     _instances[job.Key].Start(job.Value.SyncEvery, rand.Next(30_000));
         }
     }
     public async Task StopAsync()
