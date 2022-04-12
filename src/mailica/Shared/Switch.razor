@@ -1,6 +1,6 @@
 <div class="form-check form-switch @(NoMargin ? "" : "mb-3")">
     <input @ref=Input class="form-check-input @(_isError ? "is-invalid":"")" type="checkbox" id="@For"
-        required=@Required @bind=@Value>
+        required=@Required @bind=@InputValue>
     <label class="form-check-label" for="@For">@Label @(Required ? "*":"")</label>
     @if (!string.IsNullOrWhiteSpace(HelpTitle) || OnHelpClicked.HasDelegate)
     {
