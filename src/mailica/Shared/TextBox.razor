@@ -39,7 +39,7 @@
             await Input.FocusAsync();
     }
 
-    private async Task UpdateAsync(string? value)
+    async Task UpdateAsync(string? value)
     {
         if (_isError)
             Errors!.Remove(For);
