@@ -11,7 +11,7 @@
             "preLaunchTask": "build-mailica",
             "program": "${workspaceFolder}/src/mailica/bin/Debug/net7.0/mailica.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/src",
+            "cwd": "${workspaceFolder}/src/mailica",
             "stopAtEntry": false,
             // "serverReadyAction": {
             //     "action": "openExternally",

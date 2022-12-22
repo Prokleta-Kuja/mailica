@@ -8,8 +8,11 @@
 	// "features": {},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [
-		5000,
-		5001
+		5000
+	],
+	"appPort": [
+		"0.0.0.0:25:25",
+		"0.0.0.0:587:587"
 	],
 	// "portsAtributes": {
 	//		"5001": {

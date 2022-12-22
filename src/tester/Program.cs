@@ -1,42 +1,51 @@
 ﻿
 using MailKit;
 using MailKit.Net.Imap;
+using MailKit.Net.Smtp;
 using MailKit.Search;
 using MimeKit;
 using tester;
 
 
-
-var client = new ImapClient();
-client.Connect("dovecot.gunda", 143, false);
-client.Authenticate("gmail-user1", "P@ssw0rd");
-
-var folders = client.GetFolders(client.PersonalNamespaces[0]);
-
-var path = ".Pero1.Zdero2"; // Store folder separator first, so you know what it is
-var actual = path[1..]; // remove first char - same as Substring(1)
-var separator = path[0];
-
-IMailFolder? folder;
-try
-{
-    folder = client.GetFolder(actual);
-}
-catch (FolderNotFoundException)
-{
-    var currentDir = client.GetFolder(client.PersonalNamespaces[0]);
-    var parts = actual.Split(separator);
-    for (int i = 0; i < parts.Length; i++)
-    {
-        currentDir = currentDir.Create(parts[i], true);
-        currentDir.Subscribe();
-    }
-
-    folder = currentDir;
-}
+var mail = GetMessage(new MailboxAddress("kita", "kita@ica.hr"), new MailboxAddress("kita2", "kita2@nan.hr"));
+var client = new SmtpClient();
+client.Connect("abcd.ica.hr", 25);
+client.Send(mail);
+client.Disconnect(true);
+System.Console.WriteLine("Gotovo");
 
 
-Console.WriteLine(folder.FullName);
+// var client = new ImapClient();
+// client.Connect("dovecot.gunda", 143, false);
+// client.Authenticate("gmail-user1", "P@ssw0rd");
+
+// var folders = client.GetFolders(client.PersonalNamespaces[0]);
+
+// var path = ".Pero1.Zdero2"; // Store folder separator first, so you know what it is
+// var actual = path[1..]; // remove first char - same as Substring(1)
+// var separator = path[0];
+
+// IMailFolder? folder;
+// try
+// {
+//     folder = client.GetFolder(actual);
+// }
+// catch (FolderNotFoundException)
+// {
+//     var currentDir = client.GetFolder(client.PersonalNamespaces[0]);
+//     var parts = actual.Split(separator);
+//     for (int i = 0; i < parts.Length; i++)
+//     {
+//         currentDir = currentDir.Create(parts[i], true);
+//         currentDir.Subscribe();
+//     }
+
+//     folder = currentDir;
+// }
+
+
+// Console.WriteLine(folder.FullName);
+/////////////////////////
 
 // var runner1 = new Runner();
 // var runner2 = new Runner();
