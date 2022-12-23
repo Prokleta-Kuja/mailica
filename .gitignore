@@ -10,7 +10,8 @@
 *.userosscache
 *.sln.docstates
 appsettings.*.json
-/src/data
+certs/
+/src/mailica/data
 /dovecot/data
 /dovecot/config/*.conf
 

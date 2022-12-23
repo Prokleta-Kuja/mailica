@@ -42,7 +42,7 @@ public class Filter1 : IMailboxFilter, IMailboxFilterFactory
 
     public Task<MailboxFilterResult> CanDeliverToAsync(ISessionContext context, IMailbox to, IMailbox @from, CancellationToken token)
     {
-        // ovaj kurac se poziva koliko god primatelja ima, pa ako otkantaš jednog, otkantao si sve
+        // ovaj kurac se poziva koliko god primatelja ima, pa ako otkantaš jednog, otkantao si sve? možda samo mimekit
 
         // Open Relay - do not accept mails for domain not responsible for
         if (to.Host == "ica.hr")
@@ -64,7 +64,7 @@ public class Auth1 : IUserAuthenticator, IUserAuthenticatorFactory
     {
         Console.WriteLine("Auth 1, User={0} Password={1}", user, password);
 
-        return Task.FromResult(user.Length > 4);
+        return Task.FromResult(true);
     }
 
     public IUserAuthenticator CreateInstance(ISessionContext context)

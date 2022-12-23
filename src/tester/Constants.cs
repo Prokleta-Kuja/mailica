@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using MimeKit;
 
 namespace tester
@@ -20,5 +23,29 @@ Voluptatibus aut sed nobis reprehenderit nulla magni. Libero fugit veniam sunt e
         public static readonly MailboxAddress BoxSupport = new("Company Support", "support@te.st");
         public static readonly MailboxAddress BoxGmailUser1 = new("Gmail User 1", "gmail-user1@te.st");
         public static readonly MailboxAddress BoxGmailCompany = new("Gmail Company", "gmail-company@te.st");
+    }
+    public static class PasswordHasher
+    {
+        const int KEY_LENGTH = 20;
+        const int SALT_LENGTH = 16;
+        const int ITERATIONS = 5000;
+        static readonly byte[] s_saltChars = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".Select(c => Convert.ToByte(c)).ToArray();
+        public static bool Verify(string salt, string hash, string password)
+        {
+            var saltBytes = salt.Select(c => Convert.ToByte(c)).ToArray();
+            var keyBytes = KeyDerivation.Pbkdf2(password, saltBytes, KeyDerivationPrf.HMACSHA1, ITERATIONS, KEY_LENGTH);
+
+            return hash == Convert.ToHexString(keyBytes).ToLower();
+        }
+        public static (string salt, string hash) Hash(string password)
+        {
+            var salt = new byte[SALT_LENGTH];
+            for (int i = 0; i < SALT_LENGTH; i++)
+                salt[i] = s_saltChars[RandomNumberGenerator.GetInt32(SALT_LENGTH)];
+            var key = KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA1, ITERATIONS, KEY_LENGTH);
+
+            return (Encoding.UTF8.GetString(salt), Convert.ToHexString(key).ToLower());
+        }
+        public static string DovecotHash(string salt, string hash) => $"{{PBKDF2}}$1${salt}${ITERATIONS}${hash}";
     }
 }

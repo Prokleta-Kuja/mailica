@@ -24,9 +24,22 @@ public static class C
         {
             Locale = CultureInfo.GetCultureInfo(Environment.GetEnvironmentVariable("LOCALE") ?? "en-UK");
         }
-        catch (System.Exception)
+        catch (Exception)
         {
             Locale = CultureInfo.InvariantCulture;
         }
+    }
+    public static class Paths
+    {
+        public static string AppData => Path.Combine(Environment.CurrentDirectory, "data");
+        public static string AppDataFor(string file) => Path.Combine(AppData, file);
+        public static readonly string AppDbConnectionString = $"Data Source={AppDataFor("app.db")}";
+    }
+    public static class Routes
+    {
+        public const string Root = "/";
+        public const string Credentials = "/credentials";
+        public const string Credential = "/credentials/{AliasId:guid}";
+        public static string CredentialFor(Guid aliasId) => $"{Credentials}/{aliasId}";
     }
 }

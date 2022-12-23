@@ -1,23 +1,13 @@
 ## You should mount /etc/dovecot if you want to
 ## manage this file
 
-## Remove when not developing
-disable_plaintext_auth=no
-auth_master_user_separator=*
-
-
-mail_home=/srv/mail/%Ln
 mail_location=maildir:/srv/mail/%Ln/Mail
 mail_uid=1000
 mail_gid=1000
 
 protocols = imap submission sieve
 
-first_valid_uid = 1000
-last_valid_uid = 1000
-
-
-master_user_separator=*
+auth_master_user_separator=*
 passdb {
 # <real_user>*<master_user>
   driver=passwd-file
@@ -41,7 +31,9 @@ passdb {
 #   args = password=pass
 # }
 
-ssl=no
+ssl=required
+ssl_cert = </certs/cert.crt
+ssl_key = </certs/cert.key
 
 namespace {
   inbox = yes

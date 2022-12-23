@@ -1,18 +1,46 @@
 ﻿
+using System.Security.Cryptography;
+using System.Text;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
 using MailKit.Search;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using MimeKit;
 using tester;
 
 
-var mail = GetMessage(new MailboxAddress("kita", "kita@ica.hr"), new MailboxAddress("kita2", "kita2@nan.hr"));
-var client = new SmtpClient();
-client.Connect("abcd.ica.hr", 25);
-client.Send(mail);
-client.Disconnect(true);
-System.Console.WriteLine("Gotovo");
+// var x = PasswordHasher.Hash("pass");
+// System.Console.WriteLine(PasswordHasher.DovecotHash(x.salt, x.hash));
+// System.Console.WriteLine(PasswordHasher.Verify(x.salt, x.hash, "pass"));
+
+// var keyLength = 20;
+// var saltLength = 16;
+// var rounds = 5000;
+// var pass = "pass";
+// var saltChars = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".Select(c => Convert.ToByte(c)).ToArray();
+// var salt = new byte[saltLength];
+// for (int i = 0; i < saltLength; i++)
+//      salt[i] = saltChars[RandomNumberGenerator.GetInt32(saltLength)];
+//     //salt[i] = Convert.ToByte("A006C816.266807B"[i]);
+// var key = KeyDerivation.Pbkdf2(
+//     password: pass,
+//     salt: salt,
+//     prf: KeyDerivationPrf.HMACSHA1,
+//     iterationCount: rounds,
+//     numBytesRequested: keyLength);
+
+// Console.WriteLine($"{{PBKDF2}}$1${Encoding.UTF8.GetString(salt)}${rounds}${Convert.ToHexString(key).ToLower()}");
+
+
+
+
+// var mail = GetMessage(new MailboxAddress("kita", "kita@ica.hr"), new MailboxAddress("kita2", "kita2@nan.hr"));
+// var client = new SmtpClient();
+// client.Connect("abcd.ica.hr", 25);
+// client.Send(mail);
+// client.Disconnect(true);
+// System.Console.WriteLine("Gotovo");
 
 
 // var client = new ImapClient();

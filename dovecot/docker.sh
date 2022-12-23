@@ -2,12 +2,11 @@ docker stop dovecot && docker rm dovecot
 docker create \
   --name dovecot \
   --hostname dovecot \
-  --net=gunda \
+  --net=zzz \
   -e TZ=Europe/Zagreb \
   -v ~/repos/mailica/dovecot/config:/etc/dovecot \
   -v ~/repos/mailica/dovecot/data:/srv/mail \
-  -p 143:143 \
-  -p 587:587 \
-  -p 4190:4190 \
-  dovecot/dovecot:2.3.18 
+  -v ~/repos/mailica/certs:/certs:ro \
+  -p 993:993 \
+  dovecot/dovecot:2.3.20
 docker start dovecot && docker logs dovecot -f
