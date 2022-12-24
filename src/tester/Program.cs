@@ -35,12 +35,13 @@ using tester;
 
 
 
-// var mail = GetMessage(new MailboxAddress("kita", "kita@ica.hr"), new MailboxAddress("kita2", "kita2@nan.hr"));
-// var client = new SmtpClient();
-// client.Connect("abcd.ica.hr", 25);
-// client.Send(mail);
-// client.Disconnect(true);
-// System.Console.WriteLine("Gotovo");
+var mail = GetMessage(new MailboxAddress("kita", "kita@ica.hr"), new MailboxAddress("kita2", "kita2@ica.hr"));
+var client = new SmtpClient();
+client.Connect("abcd.ica.hr", 25);
+client.Authenticate("Kura", "usta");
+client.Send(mail);
+client.Disconnect(true);
+System.Console.WriteLine("Gotovo");
 
 
 // var client = new ImapClient();

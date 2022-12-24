@@ -5,11 +5,19 @@ namespace mailica;
 public static class C
 {
     public static readonly bool IsDebug;
+    public const string CRT_FILE = "cert.crt";
+    public const string KEY_FILE = "cert.key";
+    public static readonly string Hostname;
+    public static readonly string MasterUser;
+    public static readonly string MasterSecret;
     public static readonly TimeZoneInfo TZ;
     public static readonly CultureInfo Locale;
     static C()
     {
         IsDebug = Environment.GetEnvironmentVariable("DEBUG") == "1";
+        Hostname = Environment.GetEnvironmentVariable("HOSTNAME") ?? string.Empty;
+        MasterUser = Environment.GetEnvironmentVariable("MASTER_USER") ?? string.Empty;
+        MasterSecret = Environment.GetEnvironmentVariable("MASTER_SECRET") ?? string.Empty;
 
         try
         {
@@ -31,15 +39,18 @@ public static class C
     }
     public static class Paths
     {
-        public static readonly string AppDbConnectionString = $"Data Source={AppDataFor("app.db")}";
-        public static string AppData => IsDebug ? Path.Combine(Environment.CurrentDirectory, "data") : "/data";
-        public static string AppDataFor(string file) => Path.Combine(AppData, file);
-        public static string MailData => AppDataFor("mail");
+        static string Root => IsDebug ? "./data" : string.Empty;
+        public static readonly string MailData = $"{Root}/mail";
         public static string MailDataFor(string username) => Path.Combine(MailData, username.ToLower());
-        public static string ConfigData => AppDataFor("config");
+        public static readonly string ConfigData = $"{Root}/config";
         public static string ConfigDataFor(string file) => Path.Combine(ConfigData, file);
-        public static string CertData => AppDataFor("certs");
+        public static readonly string CertData = $"{Root}/certs";
         public static string CertDataFor(string file) => Path.Combine(CertData, file);
+        // Order matters
+        public static readonly string CertCrt = CertDataFor(CRT_FILE);
+        public static readonly string CertKey = CertDataFor(KEY_FILE);
+        public static readonly string AppDb = ConfigDataFor("app.db");
+        public static readonly string AppDbConnectionString = $"Data Source={AppDb}";
     }
     public static class Routes
     {

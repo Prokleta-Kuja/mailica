@@ -20,7 +20,10 @@
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "ASPNETCORE_URLS": "http://+:5000",
-                "DEBUG": "1"
+                "DEBUG": "1",
+                "HOSTNAME": "abcd.ica.hr",
+                "MASTER_USER": "kita",
+                "MASTER_SECRET": "pass"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"

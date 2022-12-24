@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using mailica.Entities;
 using mailica.Services;
@@ -9,18 +8,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Serilog;
 using Serilog.Events;
-using SmtpServer;
-using SmtpServer.Authentication;
-using SmtpServer.Storage;
 
 namespace mailica;
 
 public class Program
 {
+    public static string CertCrt { get; private set; } = string.Empty;
+    public static string CertKey { get; private set; } = string.Empty;
+
     public static async Task<int> Main(string[] args)
     {
-        InitializeDirectoriesAndConfiguration();
-
         Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(C.IsDebug ? LogEventLevel.Debug : LogEventLevel.Information)
                 .MinimumLevel.Override(nameof(Microsoft), LogEventLevel.Information)
@@ -32,23 +29,9 @@ public class Program
 
         try
         {
-            var cert = X509Certificate2.CreateFromPemFile("../../certs/cert.crt", "../../certs/cert.key"); // Učitaj iz env?
-            var smtpOpt = new SmtpServerOptionsBuilder()
-                .ServerName("abcd.ica.hr") // Zamijeni sa pravim imenom iz dns-a
-                .Endpoint(c => c
-                    .Port(25)//.IsSecure(false)
-                    .AllowUnsecureAuthentication(false)
-                    .Certificate(cert)
-                )
-                .Endpoint(c => c
-                    .Port(587)//.IsSecure(true)
-                    .AllowUnsecureAuthentication(false)
-                    .Certificate(cert)
-                )
-                .Build();
-
             var builder = WebApplication.CreateBuilder(args);
             builder.Host.UseSerilog();
+            builder.Services.AddSmtp();
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
             builder.Services.Configure<ForwardedHeadersOptions>(options => options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto);
@@ -63,21 +46,13 @@ public class Program
                 }
             });
 
-            builder.Services.AddTransient<IUserAuthenticator, Auth1>();
-            builder.Services.AddTransient<IMailboxFilter, Filter1>();
-            builder.Services.AddTransient<IMessageStore, Store1>();
-
             var app = builder.Build();
-            await InitializeDb(app.Services);
+            await Initialize(app.Services);
 
-            var smtpServer = new SmtpServer.SmtpServer(smtpOpt, app.Services);
-            _ = smtpServer.StartAsync(CancellationToken.None);
-
+            app.UseSmtp();
             app.UseForwardedHeaders();
             app.UseStaticFiles();
-
             app.UseRouting();
-
             app.MapBlazorHub();
             app.MapFallbackToPage("/_Host");
 
@@ -95,17 +70,28 @@ public class Program
             Log.CloseAndFlush();
         }
     }
-    static void InitializeDirectoriesAndConfiguration()
-    {
-        Directory.CreateDirectory(C.Paths.AppData);
-        Directory.CreateDirectory(C.Paths.MailData);
-        Directory.CreateDirectory(C.Paths.ConfigData);
-        Directory.CreateDirectory(C.Paths.CertData);
-        DovecotConfiguration.Initial();
-    }
 
-    static async Task InitializeDb(IServiceProvider provider)
+    static async Task Initialize(IServiceProvider provider)
     {
+        if (C.IsDebug)
+        {
+            Directory.CreateDirectory(C.Paths.MailData);
+            Directory.CreateDirectory(C.Paths.ConfigData);
+            Directory.CreateDirectory(C.Paths.CertData);
+        }
+
+        if (string.IsNullOrWhiteSpace(C.Hostname))
+            throw new Exception("You must specify HOSTNAME environment variable");
+
+        if (string.IsNullOrWhiteSpace(C.MasterUser) || string.IsNullOrWhiteSpace(C.MasterSecret))
+            throw new Exception("You must specify MASTER_USER & MASTER_SECRET environment variables");
+
+        if (!File.Exists(C.Paths.CertCrt) || !File.Exists(C.Paths.CertKey))
+            throw new Exception($"Could not load certs from {C.Paths.CertData}");
+
+        if (!Directory.GetFiles(C.Paths.ConfigData).Any())
+            DovecotConfiguration.Initial();
+
         var dbFactory = provider.GetRequiredService<IDbContextFactory<AppDbContext>>();
         using var db = dbFactory.CreateDbContext();
 
@@ -114,7 +100,7 @@ public class Program
         else
             await db.Database.EnsureCreatedAsync();
 
-        // Seed
+        // Demo data
         if (C.IsDebug && !db.Domains.Any())
         {
             var dpProvider = provider.GetRequiredService<IDataProtectionProvider>();

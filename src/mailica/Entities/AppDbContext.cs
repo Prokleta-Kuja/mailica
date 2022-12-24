@@ -24,7 +24,7 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
         {
             e.HasKey(e => e.AddressId);
             e.HasOne(e => e.Domain).WithMany(e => e.Addresses).HasForeignKey(e => e.DomainId).IsRequired().OnDelete(DeleteBehavior.Cascade);
-            e.HasIndex(e => e.Name).IsUnique();
+            e.HasIndex(e => e.Pattern).IsUnique();
         });
 
         builder.Entity<Domain>(e =>
@@ -88,9 +88,9 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
         ica.Users.Add(slaveUser);
 
 
-        var mailMaster = new Address { Name = "master", Description = "Master main", Domain = ica, IsStatic = true, };
-        var mailSlave = new Address { Name = "slave", Description = "Slave main", Domain = ica, IsStatic = true, };
-        var mailSales = new Address { Name = @"slave\..+@te\.st", Description = "Slave wildcard after", Domain = ica, };
+        var mailMaster = new Address { Pattern = "master", Description = "Master main", Domain = ica, IsStatic = true, };
+        var mailSlave = new Address { Pattern = "slave", Description = "Slave main", Domain = ica, IsStatic = true, };
+        var mailSales = new Address { Pattern = @"slave\..+@te\.st", Description = "Slave wildcard after", Domain = ica, };
         mailMaster.Users.Add(masterUser);
         mailSlave.Users.Add(slaveUser);
         mailSales.Users.Add(slaveUser);

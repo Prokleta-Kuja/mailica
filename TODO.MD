@@ -1,6 +1,10 @@
 # TODO
 
 A recurring job to check if there are maildirs for deleted users and/or delete it when deleting users
+Master users cant login as themself
+New users can't have the name same as undelivered folder
+Test SMTP server gracefull shutdown. Should be console logged after docker stop
+Reload certs https://doc.dovecot.org/admin_manual/doveadm_http_api/#doveadm-reload
 
 # Important dovecot conf
 - https://doc.dovecot.org/configuration_manual/lastlogin_plugin/
@@ -17,3 +21,27 @@ A recurring job to check if there are maildirs for deleted users and/or delete i
 - https://doc.dovecot.org/settings/core/#core_setting-protocols
 - https://doc.dovecot.org/settings/core/#core_setting-recipient_delimiter
 - https://doc.dovecot.org/settings/core/#core_setting-ssl + odmah ispod za uri do certa
+
+# Installation
+
+Run mailica first to initialize dovecot configuration.
+Create mailsolution folder, eg. /opt/appdata/mailica, with subfolders config & mail.
+
+## mailica container
+
+Bind crt and key files to /certs/cert.crt and /certs/cert.key
+Bind mailsolution/config to /config
+Bind mailsolution/mail to /mail
+
+## dovecot container
+
+Bind crt and key files to /certs/cert.crt and /certs/cert.key
+Bind mailsolution/config to /etc/dovecot
+Bind mailsolution/mail to /mail
+
+# Development
+
+On first run a data folder is going to be created and it going to fail because you need to put cert.crt & cert.key in data/certs folder.
+
+# Other
+After changing system user or password via env, dovcot configuration must be reloaded or dovecot restarted.

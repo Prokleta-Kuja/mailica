@@ -1,5 +1,8 @@
+using System.Diagnostics;
+
 namespace mailica.Entities;
 
+[DebuggerDisplay("Name={Name} Master={IsMaster}")]
 public class User
 {
     public int UserId { get; set; }
