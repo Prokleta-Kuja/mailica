@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using mailica.Entities;
+using mailica.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ public class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        InitializeDirectories();
+        InitializeDirectoriesAndConfiguration();
 
         Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(C.IsDebug ? LogEventLevel.Debug : LogEventLevel.Information)
@@ -94,10 +95,13 @@ public class Program
             Log.CloseAndFlush();
         }
     }
-    static void InitializeDirectories()
+    static void InitializeDirectoriesAndConfiguration()
     {
-        var appdata = new DirectoryInfo(C.Paths.AppData);
-        appdata.Create();
+        Directory.CreateDirectory(C.Paths.AppData);
+        Directory.CreateDirectory(C.Paths.MailData);
+        Directory.CreateDirectory(C.Paths.ConfigData);
+        Directory.CreateDirectory(C.Paths.CertData);
+        DovecotConfiguration.Initial();
     }
 
     static async Task InitializeDb(IServiceProvider provider)

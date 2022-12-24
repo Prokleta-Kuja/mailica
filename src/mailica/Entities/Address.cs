@@ -10,4 +10,5 @@ public class Address
     public DateTime? Disabled { get; set; }
 
     public Domain? Domain { get; set; }
+    public virtual List<User> Users { get; set; } = new();
 }

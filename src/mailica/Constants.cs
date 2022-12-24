@@ -31,9 +31,15 @@ public static class C
     }
     public static class Paths
     {
-        public static string AppData => Path.Combine(Environment.CurrentDirectory, "data");
-        public static string AppDataFor(string file) => Path.Combine(AppData, file);
         public static readonly string AppDbConnectionString = $"Data Source={AppDataFor("app.db")}";
+        public static string AppData => IsDebug ? Path.Combine(Environment.CurrentDirectory, "data") : "/data";
+        public static string AppDataFor(string file) => Path.Combine(AppData, file);
+        public static string MailData => AppDataFor("mail");
+        public static string MailDataFor(string username) => Path.Combine(MailData, username.ToLower());
+        public static string ConfigData => AppDataFor("config");
+        public static string ConfigDataFor(string file) => Path.Combine(ConfigData, file);
+        public static string CertData => AppDataFor("certs");
+        public static string CertDataFor(string file) => Path.Combine(CertData, file);
     }
     public static class Routes
     {

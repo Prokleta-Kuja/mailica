@@ -14,7 +14,6 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<Domain> Domains => Set<Domain>();
-    public DbSet<Server> Servers => Set<Server>();
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -34,15 +33,11 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
             e.HasIndex(e => e.Name);
         });
 
-        builder.Entity<Server>(e =>
-        {
-            e.HasKey(e => e.ServerId);
-        });
-
         builder.Entity<User>(e =>
         {
             e.HasKey(e => e.UserId);
             e.HasMany(e => e.Domains).WithMany(e => e.Users);
+            e.HasMany(e => e.Addresses).WithMany(e => e.Users);
         });
 
         // SQLite conversions
@@ -62,7 +57,7 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
                 var spanProperties = entityType.ClrType.GetProperties()
                     .Where(p => p.PropertyType == typeof(TimeSpan) || p.PropertyType == typeof(TimeSpan?));
                 foreach (var property in spanProperties)
-                    builder.Entity(entityType.Name).Property(property.Name).HasConversion<long>();
+                    builder.Entity(entityType.Name).Property(property.Name).HasConversion<double>();
             }
     }
     public async ValueTask InitializeDefaults(IDataProtectionProvider dpProvider)
@@ -70,34 +65,35 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
         if (!Debugger.IsAttached)
             return;
 
-        var serverProtector = dpProvider.CreateProtector(nameof(Server));
-        Servers.Add(new Server
+        var serverProtector = dpProvider.CreateProtector(nameof(Domain));
+        var ica = new Domain
         {
-            Name = "Home",
-            Description = "Test",
+            Name = "ica.hr",
             Host = "abcd.ica.hr",
             Port = 587,
             IsSecure = true,
             Username = "home",
             Password = serverProtector.Protect("P@ssw0rd"),
-        });
+        };
+        Domains.Add(ica);
 
         var master = DovecotHasher.Hash("master");
         var masterUser = new User { Name = "master", IsMaster = true, Description = "Master user", Salt = master.Salt, Hash = master.Hash, Password = DovecotHasher.Password(master.Salt, master.Hash), };
         Users.Add(masterUser);
+        ica.Users.Add(masterUser);
 
         var slave = DovecotHasher.Hash("slave");
         var slaveUser = new User { Name = "slave", Quota = 1024, Description = "Slave user", Salt = slave.Salt, Hash = slave.Hash, Password = DovecotHasher.Password(slave.Salt, slave.Hash), };
         Users.Add(slaveUser);
-
-        var ica = new Domain { Name = "ica.hr", };
-        ica.Users.Add(masterUser);
         ica.Users.Add(slaveUser);
-        Domains.Add(ica);
+
 
         var mailMaster = new Address { Name = "master", Description = "Master main", Domain = ica, IsStatic = true, };
         var mailSlave = new Address { Name = "slave", Description = "Slave main", Domain = ica, IsStatic = true, };
         var mailSales = new Address { Name = @"slave\..+@te\.st", Description = "Slave wildcard after", Domain = ica, };
+        mailMaster.Users.Add(masterUser);
+        mailSlave.Users.Add(slaveUser);
+        mailSales.Users.Add(slaveUser);
         Addresses.AddRange(mailMaster, mailSlave, mailSales);
 
         await SaveChangesAsync();

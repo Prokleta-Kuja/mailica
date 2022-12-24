@@ -1,7 +1,7 @@
 ## You should mount /etc/dovecot if you want to
 ## manage this file
 
-mail_location=maildir:/srv/mail/%Ln/Mail
+mail_location=maildir:/srv/mail/%Ln
 mail_uid=1000
 mail_gid=1000
 
