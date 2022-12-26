@@ -39,7 +39,7 @@ public class SessionManager
         {
             await handle.SessionContext.Pipe!.Input.CompleteAsync();
 
-            handle.SessionContext.Pipe.Dispose();
+            handle.SessionContext.Dispose();
         }
     }
 

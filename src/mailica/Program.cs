@@ -49,7 +49,14 @@ public class Program
             var app = builder.Build();
             await Initialize(app.Services);
 
-            app.UseSmtp();
+            // app.UseSmtp();
+            //////////////
+            var cts = new CancellationTokenSource();
+            var cert = System.Security.Cryptography.X509Certificates.X509Certificate2.CreateFromPemFile(C.Paths.CertCrt, C.Paths.CertKey);
+            var opt = new Smtp.ServerOptions("abcd.ica.hr", cert);
+            var server = new Smtp.Server(opt, app.Services);
+            _ = server.StartAsync(cts.Token);
+            /////////////
             app.UseForwardedHeaders();
             app.UseStaticFiles();
             app.UseRouting();

@@ -1,11 +1,17 @@
+using System.Security.Cryptography.X509Certificates;
+
 namespace mailica.Smtp;
 
 public class ServerOptions
 {
-    public ServerOptions(string serverName, params EndpointDefinition[] endpoints)
+    public ServerOptions(string serverName, X509Certificate2 cert, params int[] ports)
     {
         ServerName = serverName;
-        Endpoints = endpoints.ToList();
+        if (!ports.Any())
+            ports = new int[] { 25, 587 };
+
+        foreach (var port in ports)
+            Endpoints.Add(new EndpointDefinition(port, cert));
     }
     /// <summary>
     /// Gets or sets the maximum size of a message.
@@ -15,12 +21,12 @@ public class ServerOptions
     /// <summary>
     /// The maximum number of retries before quitting the session.
     /// </summary>
-    public int MaxRetryCount { get; set; }
+    public int MaxRetryCount { get; set; } = 5;
 
     /// <summary>
     /// The maximum number of authentication attempts.
     /// </summary>
-    public int MaxAuthenticationAttempts { get; set; }
+    public int MaxAuthenticationAttempts { get; set; } = 3;
 
     /// <summary>
     /// Gets or sets the SMTP server name.
@@ -30,15 +36,15 @@ public class ServerOptions
     /// <summary>
     /// Gets or sets the endpoint to listen on.
     /// </summary>
-    internal List<EndpointDefinition> Endpoints { get; set; }
+    internal List<EndpointDefinition> Endpoints { get; set; } = new();
 
     /// <summary>
     /// The timeout to use when waiting for a command from the client.
     /// </summary>
-    public TimeSpan CommandWaitTimeout { get; set; }
+    public TimeSpan CommandWaitTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
     /// The size of the buffer that is read from each call to the underlying network client.
     /// </summary>
-    public int NetworkBufferSize { get; set; }
+    public int NetworkBufferSize { get; set; } = 128;
 }

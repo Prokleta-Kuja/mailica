@@ -4,7 +4,7 @@ using mailica.Smtp.Commands;
 
 namespace mailica.Smtp;
 
-public class SessionContext
+public class SessionContext : IDisposable
 {
     /// <summary>
     /// Constructor.
@@ -79,11 +79,6 @@ public class SessionContext
         // TODO: set User 
         return Task.FromResult(true);
     }
-    public Task<Response> SaveAsync(ReadOnlySequence<byte> buffer, CancellationToken cancellationToken)
-    {
-        // TODO: save or send email
-        return Task.FromResult(Response.Ok);
-    }
     public async Task<MailboxFilterResult> CanAcceptFromAsync(EmailAddress @from, int size, CancellationToken cancellationToken = default)
     {
         // TODO: verify sender
@@ -95,5 +90,18 @@ public class SessionContext
         // TODO: verify recipient, called for every one
         await Task.CompletedTask;
         return MailboxFilterResult.Yes;
+    }
+    public Task<Response> SaveAsync(ReadOnlySequence<byte> buffer, CancellationToken cancellationToken)
+    {
+        // TODO: save or send email
+        return Task.FromResult(Response.Ok);
+    }
+
+
+    public void Dispose()
+    {
+        Pipe?.Dispose();
+        // TODO: dispose dbcontext here
+        return;
     }
 }

@@ -1,5 +1,8 @@
+using System.Diagnostics;
+
 namespace mailica.Smtp;
 
+[DebuggerDisplay("{User}@{Host}")]
 public class EmailAddress
 {
     public static readonly EmailAddress Empty = new(string.Empty, string.Empty);
