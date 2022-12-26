@@ -44,6 +44,7 @@ public class SecurableDuplexPipe
 
         var opt = new SslServerAuthenticationOptions
         {
+            ServerCertificate = certificate,
             ClientCertificateRequired = false,
             EnabledSslProtocols = protocols,
             CertificateRevocationCheckMode = X509RevocationMode.Offline
@@ -450,11 +451,11 @@ public static class IoExtensions
     {
         // we will only call this if a complete match in the previous span isnt found 
         // so we only need to start matching from one byte short of the full sequence
-        var partial = sequence.Slice(0, sequence.Length - 1);
+        var partial = sequence[..^1];
 
         if (TryMatchEnd(ref previous, ref partial, out index))
         {
-            partial = sequence.Slice(index);
+            partial = sequence[index..];
 
             if (next.StartsWith(partial))
             {
@@ -479,7 +480,7 @@ public static class IoExtensions
                 return true;
             }
 
-            partial = partial.Slice(0, partial.Length - 1);
+            partial = partial[..^1];
         }
 
         index = default;

@@ -32,7 +32,7 @@ public class EhloCommand : Command
             context.Pipe.Output.WriteLine($"250-{output[i]}");
         }
 
-        context.Pipe.Output.WriteLine($"250 {output[output.Length - 1]}");
+        context.Pipe.Output.WriteLine($"250 {output[^1]}");
 
         await context.Pipe.Output.FlushAsync(cancellationToken).ConfigureAwait(false);
 

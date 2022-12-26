@@ -16,7 +16,7 @@ public class EndpointDefinition
     /// <summary>
     /// The IP endpoint to listen on.
     /// </summary>
-    public IPEndPoint? Endpoint { get; set; }
+    public IPEndPoint Endpoint { get; set; }
 
     /// <summary>
     /// Indicates whether the endpoint is secure by default.
