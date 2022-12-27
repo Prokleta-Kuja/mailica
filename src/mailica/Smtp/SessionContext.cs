@@ -1,17 +1,14 @@
 using System.Buffers;
+using System.Net;
 using mailica.Entities;
 using mailica.Smtp.Commands;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace mailica.Smtp;
 
 public class SessionContext : IDisposable
 {
-    /// <summary>
-    /// Constructor.
-    /// </summary>
-    /// <param name="serviceProvider">The service provider instance.</param>
-    /// <param name="options">The server options.</param>
-    /// <param name="endpointDefinition">The endpoint definition.</param>
     public SessionContext(IServiceProvider serviceProvider, ServerOptions options, EndpointDefinition endpointDefinition)
     {
         ServiceProvider = serviceProvider;
@@ -19,60 +16,31 @@ public class SessionContext : IDisposable
         EndpointDefinition = endpointDefinition;
         Transaction = new MessageTransaction();
         Properties = new();
+
+        var dbFactory = serviceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
+        Db = dbFactory.CreateDbContext();
     }
 
-    /// <summary>
-    /// The service provider instance. 
-    /// </summary>
     public IServiceProvider ServiceProvider { get; }
-
-    /// <summary>
-    /// Gets the options that the server was created with.
-    /// </summary>
+    public AppDbContext Db { get; set; }
     public ServerOptions ServerOptions { get; }
-
-    /// <summary>
-    /// Gets the endpoint definition.
-    /// </summary>
     public EndpointDefinition EndpointDefinition { get; }
-
-    /// <summary>
-    /// Gets the pipeline to read from and write to.
-    /// </summary>
     public SecurableDuplexPipe? Pipe { get; set; }
-
-    /// <summary>
-    /// Gets the current transaction.
-    /// </summary>
     public MessageTransaction Transaction { get; }
-
-    /// <summary>
-    /// The user that was authenticated.
-    /// </summary>
     public User? User { get; private set; }
-
-    /// <summary>
-    /// Returns a value indicating whether or nor the current session is authenticated.
-    /// </summary>
     public bool IsAuthenticated => User != null;
-
-    /// <summary>
-    /// Returns the number of athentication attempts.
-    /// </summary>
     public int AuthenticationAttempts { get; set; }
-
-    /// <summary>
-    /// Gets a value indicating whether a quit has been requested.
-    /// </summary>
     public bool IsQuitRequested { get; set; }
-
-    /// <summary>
-    /// Returns a set of propeties for the current session.
-    /// </summary>
     public Dictionary<string, object> Properties { get; }
 
     /////////////////////////////////////////////////////////
 
+    public async Task<bool> CanReceiveFromIp(IPEndPoint ip)
+    {
+        // TODO: implement
+        // if port 25 then incoming if 587 then outgoing
+        return await Task.FromResult(false);
+    }
     public Task<bool> AuthenticateAsync(string? user, string? password, CancellationToken token)
     {
         Console.WriteLine("Auth, User={0} Password={1}", user, password);
@@ -101,7 +69,7 @@ public class SessionContext : IDisposable
     public void Dispose()
     {
         Pipe?.Dispose();
-        // TODO: dispose dbcontext here
+        Db?.Dispose();
         return;
     }
 }

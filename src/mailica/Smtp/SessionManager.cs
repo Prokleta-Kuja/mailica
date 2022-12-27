@@ -12,7 +12,6 @@ public class SessionManager
 
         handle.CompletionTask = RunAsync(handle, cancellationToken);
 
-        // ReSharper disable once MethodSupportsCancellation
         handle.CompletionTask.ContinueWith(task =>
             {
                 Remove(handle);
@@ -95,38 +94,4 @@ public class SessionManager
 
         public Task? CompletionTask { get; set; }
     }
-}
-
-public class SessionEventArgs : EventArgs
-{
-    /// <summary>
-    /// Constructor.
-    /// </summary>
-    /// <param name="context">The session context.</param>
-    public SessionEventArgs(SessionContext context)
-    {
-        Context = context;
-    }
-
-    /// <summary>
-    /// Returns the session context.
-    /// </summary>
-    public SessionContext Context { get; }
-}
-public class SessionFaultedEventArgs : SessionEventArgs
-{
-    /// <summary>
-    /// Constructor.
-    /// </summary>
-    /// <param name="context">The session context.</param>
-    /// <param name="exception">The exception that occured</param>
-    public SessionFaultedEventArgs(SessionContext context, Exception exception) : base(context)
-    {
-        Exception = exception;
-    }
-
-    /// <summary>
-    /// Returns the exception.
-    /// </summary>
-    public Exception Exception { get; }
 }

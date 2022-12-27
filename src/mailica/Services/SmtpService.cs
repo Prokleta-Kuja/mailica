@@ -13,9 +13,9 @@ public static class SmtpService
     static Task? s_serverTask;
     public static void AddSmtp(this IServiceCollection services)
     {
-        services.AddTransient<IUserAuthenticator, SmtpAuthService>();
-        services.AddTransient<IMailboxFilter, SmtpFilterService>();
-        services.AddTransient<IMessageStore, SmtpStoreService>();
+        // services.AddTransient<IUserAuthenticator, SmtpAuthService>();
+        // services.AddTransient<IMailboxFilter, SmtpFilterService>();
+        // services.AddTransient<IMessageStore, SmtpStoreService>();
     }
     public static void UseSmtp(this WebApplication app)
     {

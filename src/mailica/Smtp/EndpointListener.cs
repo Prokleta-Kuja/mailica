@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Sockets;
 
 namespace mailica.Smtp;
@@ -35,7 +36,15 @@ public class EndpointListener : IDisposable
 
         context.Properties.Add(LocalEndPointKey, _tcpListener.LocalEndpoint);
         if (tcpClient.Client.RemoteEndPoint != null)
+        {
             context.Properties.Add(RemoteEndPointKey, tcpClient.Client.RemoteEndPoint);
+            if (tcpClient.Client.RemoteEndPoint is IPEndPoint ip && await context.CanReceiveFromIp(ip))
+            {
+                tcpClient.Close();
+                tcpClient.Dispose();
+                return null!;
+            }
+        }
 
         var stream = tcpClient.GetStream();
         stream.ReadTimeout = (int)_endpointDefinition.ReadTimeout.TotalMilliseconds;
