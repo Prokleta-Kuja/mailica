@@ -1,4 +1,5 @@
 ﻿
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using MailKit;
@@ -9,6 +10,16 @@ using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using MimeKit;
 using tester;
 
+
+var spfValidator = new ARSoft.Tools.Net.Spf.SpfValidator();
+
+var mailIpAddress = IPAddress.Parse("176.222.33.4");
+var domain = "zagreb.hr";
+var senderAddress = "sender@zagreb.hr";
+
+var result = spfValidator.CheckHost(mailIpAddress, domain, senderAddress);
+var r = result.Result;
+System.Console.WriteLine("ok");
 
 // var x = PasswordHasher.Hash("pass");
 // System.Console.WriteLine(PasswordHasher.DovecotHash(x.salt, x.hash));
@@ -35,13 +46,13 @@ using tester;
 
 
 
-var mail = GetMessage(new MailboxAddress("kita", "kita@ica.hr"), new MailboxAddress("kita2", "kita2@ica.hr"));
-var client = new SmtpClient();
-client.Connect("abcd.ica.hr", 25);
-client.Authenticate("Kura", "usta");
-client.Send(mail);
-client.Disconnect(true);
-System.Console.WriteLine("Gotovo");
+// var mail = GetMessage(new MailboxAddress("kita", "kita@ica.hr"), new MailboxAddress("kita2", "kita2@ica.hr"));
+// var client = new SmtpClient();
+// client.Connect("abcd.ica.hr", 25);
+// client.Authenticate("Kura", "usta");
+// client.Send(mail);
+// client.Disconnect(true);
+// System.Console.WriteLine("Gotovo");
 
 
 // var client = new ImapClient();

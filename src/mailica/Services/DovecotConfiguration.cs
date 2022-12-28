@@ -56,11 +56,66 @@ ssl=required
 ssl_cert = </certs/{C.CRT_FILE}
 ssl_key = </certs/{C.KEY_FILE}
 protocols = imap
+mail_home = /mail/%Ln
 mail_location = maildir:/mail/%Ln
 auth_master_user_separator=*
+mail_plugins = $mail_plugins quota
+mailbox_list_index = yes
+mail_always_cache_fields = date.save
+mailbox_list_index = yes
+protocol imap {{
+  mail_plugins = $mail_plugins imap_quota
+}}
+protocol !indexer-worker {{
+  mail_vsize_bg_after_count = 100
+}}
+plugin {{
+  quota_exceeded_message = Quota exceeded, please go to delete some messages first.
+  quota = count:User quota
+  quota_vsizes = yes
+  #quota_rule = *:storage=1G # This will be the default overrriden by SQL.
+}}
+
 namespace {{
   inbox = yes
   separator = /
+
+  mailbox Drafts {{
+    special_use = \Drafts
+    auto = subscribe
+  }}
+
+  mailbox Junk {{
+    special_use = \Junk
+    auto = create
+    autoexpunge = 14d
+  }}
+
+  mailbox Spam {{
+    special_use = \Junk
+    auto = no
+  }}
+
+  mailbox Trash {{
+    special_use = \Trash
+    auto = subscribe
+    autoexpunge = 14d
+  }}
+
+  mailbox Sent {{
+    special_use = \Sent
+    auto = subscribe
+  }}
+
+  mailbox ""Sent Mail"" {{
+    special_use = \Sent
+    auto = no
+  }}
+
+  mailbox Archive {{
+        special_use = \Archive
+        auto = create
+  }}
 }}
 
 log_path=/dev/stdout

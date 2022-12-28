@@ -13,11 +13,11 @@ public class IpBlackListService
     public async Task<bool> CanReceiveFromIpAddress(string ipAddress)
     {
         // TODO: Check dnsbl
-        await Task.FromResult(false);
+        return await Task.FromResult(false);
     }
     public async Task<bool> CanSendFromIpAddress(string ipAddress)
     {
         // TODO: Check if auth attempts exceeded and country?
-        await Task.FromResult(false);
+        return await Task.FromResult(false);
     }
 }
