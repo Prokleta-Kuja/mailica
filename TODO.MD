@@ -1,10 +1,12 @@
 # TODO
 
+Add queues folder to keep mail if delivery fails, also add a job to process them later
+Spam scoring - add it to SessionContext and build it incrementaly then check just before mailbox delivery
 A recurring job to check if there are maildirs for deleted users and/or delete it when deleting users
 Master users cant login as themself
-New users can't have the name same as undelivered folder
 Test SMTP server gracefull shutdown. Should be console logged after docker stop
 Reload certs https://doc.dovecot.org/admin_manual/doveadm_http_api/#doveadm-reload
+Vite + react swc + bootstrap 5.3.0
 
 # Important dovecot conf
 - https://doc.dovecot.org/configuration_manual/lastlogin_plugin/

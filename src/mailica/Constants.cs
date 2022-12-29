@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 
 namespace mailica;
 
@@ -51,6 +52,10 @@ public static class C
         public static readonly string CertKey = CertDataFor(KEY_FILE);
         public static readonly string AppDb = ConfigDataFor("app.db");
         public static readonly string AppDbConnectionString = $"Data Source={AppDb}";
+    }
+    public static class Cache
+    {
+        public static string FailedAuthCount(IPEndPoint ip) => $"{nameof(FailedAuthCount)}-{ip.Address}";
     }
     public static class Routes
     {

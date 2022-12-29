@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Net;
 using mailica.Entities;
+using mailica.Services;
 using mailica.Smtp.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -9,6 +10,19 @@ namespace mailica.Smtp;
 
 public class SessionContext : IDisposable
 {
+    public IServiceProvider ServiceProvider { get; }
+    public AppDbContext Db { get; }
+    public IMemoryCache Cache { get; }
+    public ServerOptions ServerOptions { get; }
+    public EndpointDefinition EndpointDefinition { get; }
+    public IPEndPoint? RemoteEndpoint { get; set; }
+    public SecurableDuplexPipe? Pipe { get; set; }
+    public MessageTransaction Transaction { get; }
+    public User? User { get; private set; }
+    public bool IsAuthenticated => User != null;
+    public int AuthenticationAttempts { get; set; }
+    public bool IsQuitRequested { get; set; }
+    public Dictionary<string, object> Properties { get; }
     public SessionContext(IServiceProvider serviceProvider, ServerOptions options, EndpointDefinition endpointDefinition)
     {
         ServiceProvider = serviceProvider;
@@ -19,33 +33,57 @@ public class SessionContext : IDisposable
 
         var dbFactory = serviceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
         Db = dbFactory.CreateDbContext();
+
+        var cache = serviceProvider.GetRequiredService<IMemoryCache>();
+        Cache = cache;
     }
 
-    public IServiceProvider ServiceProvider { get; }
-    public AppDbContext Db { get; set; }
-    public ServerOptions ServerOptions { get; }
-    public EndpointDefinition EndpointDefinition { get; }
-    public SecurableDuplexPipe? Pipe { get; set; }
-    public MessageTransaction Transaction { get; }
-    public User? User { get; private set; }
-    public bool IsAuthenticated => User != null;
-    public int AuthenticationAttempts { get; set; }
-    public bool IsQuitRequested { get; set; }
-    public Dictionary<string, object> Properties { get; }
 
     /////////////////////////////////////////////////////////
 
-    public async Task<bool> CanReceiveFromIp(IPEndPoint ip)
+    public async Task<bool> ShouldBlockConnectionFrom(IPEndPoint ip)
     {
-        // TODO: implement
-        // if port 25 then incoming if 587 then outgoing
-        return await Task.FromResult(false);
+        await Task.CompletedTask;
+        if (ip.Port == 587) // Outgoing
+        {
+            var failedAuthCountKey = C.Cache.FailedAuthCount(ip);
+            if (Cache.TryGetValue<int>(failedAuthCountKey, out var result))
+                return result >= 8; // TODO: move to config
+        }
+
+        return false;
     }
-    public Task<bool> AuthenticateAsync(string? user, string? password, CancellationToken token)
+    public async Task<bool> AuthenticateAsync(string? user, string? password, CancellationToken token)
     {
-        Console.WriteLine("Auth, User={0} Password={1}", user, password);
-        // TODO: set User 
-        return Task.FromResult(true);
+        if (RemoteEndpoint == null)
+            return false;
+
+        var failedAuthCountKey = C.Cache.FailedAuthCount(RemoteEndpoint);
+        if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(password))
+            return IncurInfraction(failedAuthCountKey);
+
+        var dbUser = await Db.Users.FirstOrDefaultAsync(u => u.Name.Equals(user, StringComparison.InvariantCultureIgnoreCase), token);
+        if (dbUser == null)
+            return IncurInfraction(failedAuthCountKey);
+
+        if (DovecotHasher.Verify(dbUser.Salt, dbUser.Hash, password))
+            return IncurInfraction(failedAuthCountKey);
+
+        Cache.Remove(failedAuthCountKey);
+        User = dbUser;
+        return true;
+
+        bool IncurInfraction(string failedAuthCountKey)
+        {
+            var failedAuthCount = Cache.GetOrCreate<int>(failedAuthCountKey, e =>
+            {
+                e.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
+                e.SlidingExpiration = TimeSpan.FromMinutes(5);
+                return default;
+            });
+            Cache.Set(failedAuthCountKey, ++failedAuthCount);
+            return false;
+        }
     }
     public async Task<MailboxFilterResult> CanAcceptFromAsync(EmailAddress @from, int size, CancellationToken cancellationToken = default)
     {

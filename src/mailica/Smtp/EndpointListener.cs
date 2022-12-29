@@ -5,9 +5,6 @@ namespace mailica.Smtp;
 
 public class EndpointListener : IDisposable
 {
-    public const string LocalEndPointKey = "EndpointListener:LocalEndPoint";
-    public const string RemoteEndPointKey = "EndpointListener:RemoteEndPoint";
-
     readonly EndpointDefinition _endpointDefinition;
     readonly TcpListener _tcpListener;
 
@@ -34,17 +31,15 @@ public class EndpointListener : IDisposable
         var tcpClient = await _tcpListener.AcceptTcpClientAsync(cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        context.Properties.Add(LocalEndPointKey, _tcpListener.LocalEndpoint);
-        if (tcpClient.Client.RemoteEndPoint != null)
-        {
-            context.Properties.Add(RemoteEndPointKey, tcpClient.Client.RemoteEndPoint);
-            if (tcpClient.Client.RemoteEndPoint is IPEndPoint ip && await context.CanReceiveFromIp(ip))
+        if (tcpClient.Client.RemoteEndPoint is IPEndPoint ip)
+            if (await context.ShouldBlockConnectionFrom(ip))
             {
                 tcpClient.Close();
                 tcpClient.Dispose();
                 return null!;
             }
-        }
+            else
+                context.RemoteEndpoint = ip;
 
         var stream = tcpClient.GetStream();
         stream.ReadTimeout = (int)_endpointDefinition.ReadTimeout.TotalMilliseconds;
