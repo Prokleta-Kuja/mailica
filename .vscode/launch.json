@@ -36,7 +36,7 @@
             "preLaunchTask": "build-tester",
             "program": "${workspaceFolder}/src/tester/bin/Debug/net7.0/tester.dll",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/src/tester",
             "stopAtEntry": false,
             "console": "internalConsole"
         }
