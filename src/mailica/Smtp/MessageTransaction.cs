@@ -14,6 +14,8 @@ public class MessageTransaction
         Parameters = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
     }
 
+    public bool Outgoing { get; set; }
+
     /// <summary>
     /// Gets or sets the mailbox that is sending the message.
     /// </summary>

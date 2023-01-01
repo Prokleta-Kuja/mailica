@@ -4,14 +4,11 @@ namespace mailica.Smtp;
 
 public class ServerOptions
 {
-    public ServerOptions(string serverName, X509Certificate2 cert, params int[] ports)
+    public ServerOptions(string serverName, X509Certificate2 cert)
     {
         ServerName = serverName;
-        if (!ports.Any())
-            ports = new int[] { 25, 587 };
-
-        foreach (var port in ports)
-            Endpoints.Add(new EndpointDefinition(port, cert));
+        Endpoints.Add(new(25, cert));
+        Endpoints.Add(new(587, cert) { AuthenticationRequired = true });
     }
     /// <summary>
     /// Gets or sets the maximum size of a message.

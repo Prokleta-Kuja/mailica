@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Net;
+using System.Text.RegularExpressions;
 using mailica.Entities;
 using mailica.Services;
 using mailica.Smtp.Commands;
@@ -10,6 +11,7 @@ namespace mailica.Smtp;
 
 public class SessionContext : IDisposable
 {
+    Guid ContextId { get; } = Guid.NewGuid();
     public IServiceProvider ServiceProvider { get; }
     public AppDbContext Db { get; }
     public IMemoryCache Cache { get; }
@@ -37,14 +39,13 @@ public class SessionContext : IDisposable
         var cache = serviceProvider.GetRequiredService<IMemoryCache>();
         Cache = cache;
     }
-
-
-    /////////////////////////////////////////////////////////
+    public void Log(string message, object? properties = null) => Db.Logs.Add(new(ContextId, message, properties));
 
     public async Task<bool> ShouldBlockConnectionFrom(IPEndPoint ip)
     {
         await Task.CompletedTask;
-        if (ip.Port == 587) // Outgoing
+        Transaction.Outgoing = EndpointDefinition.AuthenticationRequired;
+        if (Transaction.Outgoing)
         {
             var failedAuthCountKey = C.Cache.FailedAuthCount(ip);
             if (Cache.TryGetValue<int>(failedAuthCountKey, out var result))
@@ -60,17 +61,30 @@ public class SessionContext : IDisposable
 
         var failedAuthCountKey = C.Cache.FailedAuthCount(RemoteEndpoint);
         if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(password))
+        {
+            Log("Authentication failed, no username and/or password provided");
             return IncurInfraction(failedAuthCountKey);
+        }
 
-        var dbUser = await Db.Users.FirstOrDefaultAsync(u => u.Name.Equals(user, StringComparison.InvariantCultureIgnoreCase), token);
+        var userLower = user.ToLower();
+        var dbUser = await Db.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Name.Equals(userLower) && !u.Disabled.HasValue, token);
         if (dbUser == null)
+        {
+            Log($"Authentication failed, invalid user", new { user });
             return IncurInfraction(failedAuthCountKey);
+        }
 
-        if (DovecotHasher.Verify(dbUser.Salt, dbUser.Hash, password))
+        if (!DovecotHasher.Verify(dbUser.Salt, dbUser.Hash, password))
+        {
+            Log($"Authentication failed, invalid password", new { user });
             return IncurInfraction(failedAuthCountKey);
+        }
 
         Cache.Remove(failedAuthCountKey);
         User = dbUser;
+        Log($"Authenticated", new { user });
         return true;
 
         bool IncurInfraction(string failedAuthCountKey)
@@ -87,19 +101,77 @@ public class SessionContext : IDisposable
     }
     public async Task<MailboxFilterResult> CanAcceptFromAsync(EmailAddress @from, int size, CancellationToken cancellationToken = default)
     {
-        // TODO: verify sender
-        await Task.CompletedTask;
+        if (Transaction.Outgoing)
+        {
+            if (User == null)
+            {
+                Log("Cannot send without authentication", @from);
+                return MailboxFilterResult.NoPermanently;
+            }
+
+            var domain = await Db.Domains
+                .AsNoTracking()
+                .Where(d => d.Name.Equals(@from.Host.ToLower()) && !d.Disabled.HasValue)
+                .Include(d => d.Addresses.Where(a => a.Users.Contains(User) && !a.Disabled.HasValue))
+                .SingleOrDefaultAsync(cancellationToken);
+            if (domain == null)
+            {
+                Log("Unsupported domain", @from);
+                return MailboxFilterResult.NoPermanently;
+            }
+
+            var authorizedToSend = false;
+            foreach (var address in domain.Addresses)
+            {
+                if (address.IsStatic)
+                    authorizedToSend = address.Pattern.Equals(@from.User, StringComparison.InvariantCultureIgnoreCase);
+                else
+                    authorizedToSend = Regex.IsMatch(@from.User, address.Pattern, RegexOptions.IgnoreCase);
+
+                if (authorizedToSend)
+                    break;
+            }
+
+            if (authorizedToSend)
+                return MailboxFilterResult.Yes;
+            else
+            {
+                Log("User not authorized to send", @from);
+                return MailboxFilterResult.NoTemporarily;
+            }
+        }
+
+        // No checking for outside senders for now
         return MailboxFilterResult.Yes;
     }
     public async Task<MailboxFilterResult> CanDeliverToAsync(EmailAddress to, EmailAddress @from, CancellationToken cancellationToken = default)
     {
-        // TODO: verify recipient, called for every one
-        await Task.CompletedTask;
-        return MailboxFilterResult.Yes;
+        if (Transaction.Outgoing) // No checking for internal senders
+            return MailboxFilterResult.Yes;
+
+        var domain = await Db.Domains
+              .AsNoTracking()
+              .Where(d => d.Name.Equals(to.Host.ToLower()) && !d.Disabled.HasValue)
+              .Include(d => d.Addresses.Where(a => !a.Disabled.HasValue))
+              .SingleOrDefaultAsync(cancellationToken);
+        if (domain == null)
+            return MailboxFilterResult.NoPermanently;
+
+        foreach (var address in domain.Addresses)
+            if (address.IsStatic)
+            {
+                if (address.Pattern.Equals(to.User, StringComparison.InvariantCultureIgnoreCase))
+                    return MailboxFilterResult.Yes;
+            }
+            else if (Regex.IsMatch(to.User, address.Pattern, RegexOptions.IgnoreCase))
+                return MailboxFilterResult.Yes;
+
+        return MailboxFilterResult.NoTemporarily;
     }
     public Task<Response> SaveAsync(ReadOnlySequence<byte> buffer, CancellationToken cancellationToken)
     {
         // TODO: save or send email
+        Console.WriteLine("Message pushed.");
         return Task.FromResult(Response.Ok);
     }
 
@@ -107,7 +179,11 @@ public class SessionContext : IDisposable
     public void Dispose()
     {
         Pipe?.Dispose();
-        Db?.Dispose();
-        return;
+        if (Db != null)
+        {
+            if (Db.ChangeTracker.HasChanges())
+                Db.SaveChanges();
+            Db.Dispose();
+        }
     }
 }

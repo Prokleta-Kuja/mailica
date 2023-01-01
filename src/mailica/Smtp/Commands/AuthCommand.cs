@@ -54,6 +54,12 @@ public class AuthCommand : Command
                 break;
         }
 
+        if (!context.EndpointDefinition.AuthenticationRequired)
+        {
+            context.Log("Endpoint not configured for authentication");
+            return false;
+        }
+
         if (await context.AuthenticateAsync(_user, _password, cancellationToken).ConfigureAwait(false) == false)
         {
             var remaining = context.ServerOptions.MaxAuthenticationAttempts - ++context.AuthenticationAttempts;

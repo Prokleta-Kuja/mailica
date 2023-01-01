@@ -1,5 +1,8 @@
+using System.Diagnostics;
+
 namespace mailica.Entities;
 
+[DebuggerDisplay("{Name}")]
 public class Domain
 {
     public int DomainId { get; set; }

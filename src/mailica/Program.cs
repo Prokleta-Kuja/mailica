@@ -114,25 +114,5 @@ public class Program
             await db.InitializeDefaults(dpProvider);
         }
     }
-    static async Task RegexTest()
-    {
-        await Task.CompletedTask;
-        var sw = new Stopwatch();
-        var reg2 = new Regex(@"user\..*@te\.st", RegexOptions.IgnoreCase); // 0 or more after dot
-        var reg1 = new Regex(@"user\..+@te\.st", RegexOptions.IgnoreCase | RegexOptions.Compiled); // 1 or more after dot
-        sw.Start();
-        var is0 = reg1.IsMatch("User@te.st");
-        var is1 = reg1.IsMatch("user-a@te.st");
-        var is2 = reg1.IsMatch("usera@te.st");
-        var is3 = reg1.IsMatch("usera@te.sT");
-        var is4 = reg1.IsMatch("user.abc@te.st");
-        var is5 = reg1.IsMatch("nije@te.st");
-        var is6 = reg1.IsMatch("user.abc@te.st");
-        var is7 = reg1.IsMatch("user.abc-d@te.st");
-        var is8 = reg1.IsMatch("user.abc.e@te.st");
-        var is9 = reg1.IsMatch("user.abc+@te.st");
-        Console.WriteLine(sw.ElapsedMilliseconds);
-        sw.Stop();
-    }
 }
 

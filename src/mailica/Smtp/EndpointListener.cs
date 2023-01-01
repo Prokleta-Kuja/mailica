@@ -34,12 +34,16 @@ public class EndpointListener : IDisposable
         if (tcpClient.Client.RemoteEndPoint is IPEndPoint ip)
             if (await context.ShouldBlockConnectionFrom(ip))
             {
+                context.Log("IP address blocked", new { ip = ip.Address.ToString() });
                 tcpClient.Close();
                 tcpClient.Dispose();
                 return null!;
             }
             else
+            {
+                context.Log("Connection established", new { ip = ip.Address.ToString() });
                 context.RemoteEndpoint = ip;
+            }
 
         var stream = tcpClient.GetStream();
         stream.ReadTimeout = (int)_endpointDefinition.ReadTimeout.TotalMilliseconds;

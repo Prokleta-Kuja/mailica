@@ -15,6 +15,7 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<Domain> Domains => Set<Domain>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<LogEntry> Logs => Set<LogEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -90,7 +91,7 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
 
         var mailMaster = new Address { Pattern = "master", Description = "Master main", Domain = ica, IsStatic = true, };
         var mailSlave = new Address { Pattern = "slave", Description = "Slave main", Domain = ica, IsStatic = true, };
-        var mailSales = new Address { Pattern = @"slave\..+@te\.st", Description = "Slave wildcard after", Domain = ica, };
+        var mailSales = new Address { Pattern = @"slave\..+", Description = "Slave wildcard after dot", Domain = ica, };
         mailMaster.Users.Add(masterUser);
         mailSlave.Users.Add(slaveUser);
         mailSales.Users.Add(slaveUser);
