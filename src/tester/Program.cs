@@ -1,4 +1,5 @@
 ﻿
+using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -45,7 +46,8 @@ using tester;
 
 
 
-
+var sw = new Stopwatch();
+sw.Start();
 var mail = GetMessage(new MailboxAddress("kita", "kita@ica.hr"), new MailboxAddress("kita2", "kita2@ica.hr"));
 mail.From.Clear();
 mail.From.Add(new MailboxAddress("Kurac", "slave.1234@ica.hr"));
@@ -54,7 +56,8 @@ client.Connect("abcd.ica.hr", 587);
 client.Authenticate("slave", "slave");
 client.Send(mail);
 client.Disconnect(true);
-System.Console.WriteLine("Gotovo");
+sw.Stop();
+System.Console.WriteLine(sw.Elapsed);
 
 
 // var client = new ImapClient();

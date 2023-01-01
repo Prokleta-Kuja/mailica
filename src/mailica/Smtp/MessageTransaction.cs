@@ -1,33 +1,27 @@
 using System.Collections.ObjectModel;
+using mailica.Entities;
 
 namespace mailica.Smtp;
 
 public class MessageTransaction
 {
-    /// <summary>
-    /// Reset the current transaction.
-    /// </summary>
+    public MessageTransaction(bool outgoing)
+    {
+        Outgoing = outgoing;
+    }
     public void Reset()
     {
         From = null;
+        FromUser = null;
         To = new();
+        ToUsers.Clear();
         Parameters = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
     }
 
     public bool Outgoing { get; set; }
-
-    /// <summary>
-    /// Gets or sets the mailbox that is sending the message.
-    /// </summary>
     public EmailAddress? From { get; set; }
-
-    /// <summary>
-    /// Gets or sets the collection of mailboxes that the message is to be delivered to.
-    /// </summary>
+    public User? FromUser { get; set; }
     public List<EmailAddress> To { get; set; } = new();
-
-    /// <summary>
-    /// The list of parameters that were supplied by the client.
-    /// </summary>
+    public Dictionary<int, User> ToUsers { get; set; } = new();
     public IReadOnlyDictionary<string, string> Parameters { get; set; } = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
 }

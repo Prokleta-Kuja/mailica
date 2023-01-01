@@ -30,7 +30,7 @@ public class SessionContext : IDisposable
         ServiceProvider = serviceProvider;
         ServerOptions = options;
         EndpointDefinition = endpointDefinition;
-        Transaction = new MessageTransaction();
+        Transaction = new MessageTransaction(endpointDefinition.AuthenticationRequired);
         Properties = new();
 
         var dbFactory = serviceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
@@ -44,7 +44,6 @@ public class SessionContext : IDisposable
     public async Task<bool> ShouldBlockConnectionFrom(IPEndPoint ip)
     {
         await Task.CompletedTask;
-        Transaction.Outgoing = EndpointDefinition.AuthenticationRequired;
         if (Transaction.Outgoing)
         {
             var failedAuthCountKey = C.Cache.FailedAuthCount(ip);
@@ -105,7 +104,7 @@ public class SessionContext : IDisposable
         {
             if (User == null)
             {
-                Log("Cannot send without authentication", @from);
+                Log("Cannot send without authentication");
                 return MailboxFilterResult.NoPermanently;
             }
 
@@ -116,7 +115,7 @@ public class SessionContext : IDisposable
                 .SingleOrDefaultAsync(cancellationToken);
             if (domain == null)
             {
-                Log("Unsupported domain", @from);
+                Log("Unsupported domain", new { domain = @from.Host });
                 return MailboxFilterResult.NoPermanently;
             }
 
@@ -133,10 +132,13 @@ public class SessionContext : IDisposable
             }
 
             if (authorizedToSend)
+            {
+                Transaction.FromUser = User;
                 return MailboxFilterResult.Yes;
+            }
             else
             {
-                Log("User not authorized to send", @from);
+                Log("User not authorized to send as", new { address = @from.ToString(), user = User.Name });
                 return MailboxFilterResult.NoTemporarily;
             }
         }
@@ -153,25 +155,31 @@ public class SessionContext : IDisposable
               .AsNoTracking()
               .Where(d => d.Name.Equals(to.Host.ToLower()) && !d.Disabled.HasValue)
               .Include(d => d.Addresses.Where(a => !a.Disabled.HasValue))
-              // TODO: include users
+              .ThenInclude(da => da.Users)
               .SingleOrDefaultAsync(cancellationToken);
         if (domain == null)
         {
             Log("Not authorized to receive for domain", new { domain = to.Host });
             return MailboxFilterResult.NoPermanently;
         }
-        // TODO: when matched, add matched users to transaction so we already know which users to deliver to
         foreach (var address in domain.Addresses)
             if (address.IsStatic)
             {
                 if (address.Pattern.Equals(to.User, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    Log("Matched recipient to address", new { recipient = to.ToString(), address = to.User, });
+                    foreach (var user in address.Users)
+                        Transaction.ToUsers.TryAdd(user.UserId, user);
+                    Log("Recipient address matched", new { recipient = to.ToString(), address = address.Pattern });
                     return MailboxFilterResult.Yes;
                 }
             }
             else if (Regex.IsMatch(to.User, address.Pattern, RegexOptions.IgnoreCase))
+            {
+                foreach (var user in address.Users)
+                    Transaction.ToUsers.TryAdd(user.UserId, user);
+                Log("Recipient address matched", new { recipient = to.ToString(), pattern = address.Pattern });
                 return MailboxFilterResult.Yes;
+            }
 
         return MailboxFilterResult.NoTemporarily;
     }
