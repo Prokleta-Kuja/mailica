@@ -153,15 +153,22 @@ public class SessionContext : IDisposable
               .AsNoTracking()
               .Where(d => d.Name.Equals(to.Host.ToLower()) && !d.Disabled.HasValue)
               .Include(d => d.Addresses.Where(a => !a.Disabled.HasValue))
+              // TODO: include users
               .SingleOrDefaultAsync(cancellationToken);
         if (domain == null)
+        {
+            Log("Not authorized to receive for domain", new { domain = to.Host });
             return MailboxFilterResult.NoPermanently;
-
+        }
+        // TODO: when matched, add matched users to transaction so we already know which users to deliver to
         foreach (var address in domain.Addresses)
             if (address.IsStatic)
             {
                 if (address.Pattern.Equals(to.User, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Log("Matched recipient to address", new { recipient = to.ToString(), address = to.User, });
                     return MailboxFilterResult.Yes;
+                }
             }
             else if (Regex.IsMatch(to.User, address.Pattern, RegexOptions.IgnoreCase))
                 return MailboxFilterResult.Yes;
