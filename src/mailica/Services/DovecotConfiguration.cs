@@ -23,7 +23,7 @@ iterate_query = SELECT Name AS username FROM Users WHERE Disabled IS NULL");
 driver = sqlite
 connect = /etc/dovecot/app.db
 password_query = SELECT Name AS username, Password AS password, '*:bytes=' || Quota AS quota_rule \
-FROM Users WHERE Name = '%Ln' AND Disabled IS NULL AND IsMaster = 0");
+FROM Users WHERE Name = '%Ln' AND Disabled IS NULL");
     }
     static void GenerateSqlMaster()
     {
@@ -80,31 +80,46 @@ namespace {{
   inbox = yes
   separator = /
 
-  mailbox Drafts {{
+  mailbox Skice {{
     special_use = \Drafts
     auto = subscribe
   }}
 
-  mailbox Junk {{
+  mailbox Drafts {{
+    special_use = \Drafts
+    auto = no
+  }}
+
+  mailbox ""Neželjeno"" {{
     special_use = \Junk
-    auto = create
+    auto = subscribe
     autoexpunge = 14d
   }}
 
-  mailbox Spam {{
+  mailbox Junk {{
     special_use = \Junk
     auto = no
   }}
 
-  mailbox Trash {{
+  mailbox Otpad {{
     special_use = \Trash
     auto = subscribe
     autoexpunge = 14d
   }}
 
-  mailbox Sent {{
+  mailbox Trash {{
+    special_use = \Trash
+    auto = no
+  }}
+
+  mailbox Poslano {{
     special_use = \Sent
     auto = subscribe
+  }}
+
+  mailbox Sent {{
+    special_use = \Sent
+    auto = no
   }}
 
   mailbox ""Sent Mail"" {{
@@ -112,9 +127,14 @@ namespace {{
     auto = no
   }}
 
-  mailbox Archive {{
+  mailbox Arhiva {{
         special_use = \Archive
         auto = create
+  }}
+
+  mailbox Archive {{
+        special_use = \Archive
+        auto = no
   }}
 }}
 

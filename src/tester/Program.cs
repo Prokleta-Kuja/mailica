@@ -12,6 +12,31 @@ using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using MimeKit;
 using tester;
 
+
+// using var client = new ImapClient();
+// client.Connect("dovecot.zzz", 143);
+// client.Authenticate("master", "master");
+// using var message = GetMessage(new MailboxAddress("Kita", "kita@nan.hr"));
+// client.Inbox.Append(message);
+// client.Disconnect(true);
+// System.Console.WriteLine("DONE");
+
+// using var client = new ImapClient();
+// client.Connect("dovecot.zzz", 143);
+// client.Authenticate("master", "master");
+// var folders = client.GetFolders(client.PersonalNamespaces[0]);
+// foreach (var folder in folders)
+// {
+//     if (!folder.Attributes.HasFlag(FolderAttributes.Junk))
+//         continue;
+
+//     using var message = GetMessage(new MailboxAddress("Kita", "kita@nan.hr"));
+//     folder.Append(message, MessageFlags.None, DateTimeOffset.UtcNow);
+//     System.Console.WriteLine(folder.FullName);
+// }
+// client.Disconnect(true);
+// System.Console.WriteLine("DONE");
+
 // var spfValidator = new ARSoft.Tools.Net.Spf.SpfValidator();
 
 // var mailIpAddress = IPAddress.Parse("176.222.33.4");
@@ -43,21 +68,6 @@ using tester;
 //     numBytesRequested: keyLength);
 
 // Console.WriteLine($"{{PBKDF2}}$1${Encoding.UTF8.GetString(salt)}${rounds}${Convert.ToHexString(key).ToLower()}");
-
-
-
-var sw = new Stopwatch();
-sw.Start();
-var mail = GetMessage(new MailboxAddress("kita", "kita@ica.hr"), new MailboxAddress("kita2", "kita2@ica.hr"));
-mail.From.Clear();
-mail.From.Add(new MailboxAddress("Kurac", "slave.1234@ica.hr"));
-var client = new SmtpClient();
-client.Connect("abcd.ica.hr", 587);
-client.Authenticate("slave", "slave");
-client.Send(mail);
-client.Disconnect(true);
-sw.Stop();
-System.Console.WriteLine(sw.Elapsed);
 
 
 // var client = new ImapClient();

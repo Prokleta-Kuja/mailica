@@ -181,13 +181,27 @@ public class SessionContext : IDisposable
                 return MailboxFilterResult.Yes;
             }
 
-        return MailboxFilterResult.NoTemporarily;
+        Log("Recipient address not matched", new { recipient = to.ToString() });
+        return MailboxFilterResult.NoPermanently;
     }
-    public Task<Response> SaveAsync(ReadOnlySequence<byte> buffer, CancellationToken cancellationToken)
+    public async Task<Response> SaveAsync(ReadOnlySequence<byte> buffer, CancellationToken cancellationToken)
     {
         // TODO: save or send email
         Console.WriteLine("Message pushed.");
-        return Task.FromResult(Response.Ok);
+        await using var stream = new MemoryStream();
+
+        var position = buffer.GetPosition(0);
+        while (buffer.TryGet(ref position, out var memory))
+        {
+            await stream.WriteAsync(memory, cancellationToken);
+        }
+
+        stream.Position = 0;
+
+        using var message = await MimeKit.MimeMessage.LoadAsync(stream, cancellationToken);
+        using var fs = File.OpenWrite($"{DateTime.UtcNow.Ticks}.eml");
+        await message.WriteToAsync(fs, cancellationToken);
+        return Response.Ok;
     }
 
 

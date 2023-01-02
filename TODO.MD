@@ -4,7 +4,6 @@ Add queues folder to keep mail if delivery fails, also add a job to process them
 Spam scoring - add it to SessionContext and build it incrementaly then check just before mailbox delivery
 A recurring job to check if there are maildirs for deleted users and/or delete it when deleting users
 A recurring job to delete logs
-Master users cant login as themself
 Test SMTP server gracefull shutdown. Should be console logged after docker stop
 Reload certs https://doc.dovecot.org/admin_manual/doveadm_http_api/#doveadm-reload
 Vite + react swc + bootstrap 5.3.0
@@ -25,6 +24,13 @@ Vite + react swc + bootstrap 5.3.0
 - https://doc.dovecot.org/settings/core/#core_setting-recipient_delimiter
 - https://doc.dovecot.org/settings/core/#core_setting-ssl + odmah ispod za uri do certa
 
+# development
+
+to be able to login from container to dovecot container via dev network (port 143 without ssl)add to dovecot.conf:
+```
+disable_plaintext_auth = no
+ssl=no
+```
 # Installation
 
 Run mailica first to initialize dovecot configuration.
